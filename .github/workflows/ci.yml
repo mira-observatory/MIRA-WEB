@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Tipos
+        run: npm run typecheck
+
+      - name: Pruebas
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  # Contrato con MIRA-API: si el backend cambio un modelo y este repositorio no
+  # regenero los tipos, el cambio no se puede fusionar. Se habilita cuando MIRA-API
+  # publique su OpenAPI en un entorno accesible desde CI.
+  # api-contract:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with: { node-version: "22", cache: npm }
+  #     - run: npm ci
+  #     - run: npx openapi-typescript ${{ vars.MIRA_API_URL }}/openapi.json -o src/api/generated/schema.d.ts
+  #     - run: git diff --exit-code src/api/generated/
