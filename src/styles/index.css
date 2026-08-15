@@ -65,37 +65,11 @@ input:focus-visible {
 }
 .brand-mark {
   width: 164px;
-  height: 164px;
-  border: 6px solid #061b51;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: #061b51;
-  font-size: 78px;
-  line-height: 1;
-  font-weight: 500;
-  position: relative;
+  height: 170px;
+  display: block;
+  object-fit: contain;
+  flex: 0 0 auto;
   margin-right: 28px;
-  letter-spacing: -0.1em;
-}
-.brand-mark:after {
-  content: "";
-  position: absolute;
-  right: 4px;
-  bottom: 10px;
-  width: 52px;
-  height: 7px;
-  border-radius: 100%;
-  background: linear-gradient(90deg, #13749d, #05b884);
-  transform: rotate(-12deg);
-}
-.mark-dots {
-  position: absolute;
-  font-size: 54px;
-  color: #00a886;
-  right: 7px;
-  top: 54px;
-  transform: rotate(55deg);
 }
 .brand-name {
   color: #061b51;
@@ -433,19 +407,8 @@ footer b {
   }
   .brand-mark {
     width: 91px;
-    height: 91px;
-    border-width: 4px;
-    font-size: 44px;
+    height: 95px;
     margin-right: 14px;
-  }
-  .mark-dots {
-    font-size: 28px;
-    right: 2px;
-    top: 31px;
-  }
-  .brand-mark:after {
-    width: 30px;
-    height: 4px;
   }
   .brand-name {
     font-size: 54px;
