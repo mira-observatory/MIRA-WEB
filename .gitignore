@@ -11,5 +11,6 @@ dist-ssr/
 .vscode/
 .idea/
 *.log
+*.tsbuildinfo
 npm-debug.log*
 .DS_Store

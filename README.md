@@ -64,14 +64,14 @@ no regenero, el cambio no se puede fusionar.
 
 ## Estructura
 
-| Ruta | Responsabilidad |
-|---|---|
-| `src/api/` | Cliente HTTP tipado y hooks de consulta |
-| `src/features/ask/` | Caja de pregunta, selector de paises, filtros suaves |
-| `src/features/answer/` | Tabla, SQL desplegable, conteo de filas, narrativa |
-| `src/features/disambiguation/` | Lista de candidatos de entidad. El nucleo del producto |
-| `src/features/coverage/` | Franja del istmo, matriz de cobertura, explicador de ceros |
-| `src/lib/` | Formato de montos y fechas, diccionarios de enums, exportacion CSV |
+| Ruta                           | Responsabilidad                                                    |
+| ------------------------------ | ------------------------------------------------------------------ |
+| `src/api/`                     | Cliente HTTP tipado y hooks de consulta                            |
+| `src/features/ask/`            | Caja de pregunta, selector de paises, filtros suaves               |
+| `src/features/answer/`         | Tabla, SQL desplegable, conteo de filas, narrativa                 |
+| `src/features/disambiguation/` | Lista de candidatos de entidad. El nucleo del producto             |
+| `src/features/coverage/`       | Franja del istmo, matriz de cobertura, explicador de ceros         |
+| `src/lib/`                     | Formato de montos y fechas, diccionarios de enums, exportacion CSV |
 
 ## Lo que este repositorio nunca hace
 
