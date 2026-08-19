@@ -1,30 +1,78 @@
-import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { fetchQueryResult, type ConversationTurn, type QueryResponse } from "./api";
+import type { ConversationTurn, Outcome, QueryColumn } from "./api";
 import { classifyOutcome } from "./outcome";
+import { streamQuery, type StreamEvent } from "./stream";
 
 //: El backend acepta 3 turnos como maximo (QueryRequest.history).
 const MAX_HISTORY = 3;
+
+/**
+ * En que va el turno. El orden sigue al pipeline del backend, que emite
+ * sql -> row_count -> rows -> narrative -> done.
+ */
+export type TurnPhase = "translating" | "querying" | "writing" | "done";
 
 export type Turn = {
   id: string;
   question: string;
   countries: string[];
-  /** null mientras la peticion sigue en vuelo. */
-  response: QueryResponse | null;
-  /** El fetch fallo (red, 422, servicio caido) -- distinto de un outcome
-   * FAILED_*, que es una respuesta valida del servicio diciendo que algo
-   * salio mal adentro. */
+  phase: TurnPhase;
+  /** El SQL no se muestra; se guarda porque es lo que da contexto al
+   * siguiente turno (ver buildHistory). */
+  sql: string | null;
+  columns: QueryColumn[];
+  rows: Record<string, unknown>[];
+  rowCount: number;
+  truncated: boolean;
+  narrative: string | null;
+  narrativeVerified: boolean;
+  outcome: Outcome | null;
+  /** La conexion fallo (red, servicio caido). Distinto de un outcome
+   * FAILED_*, que es el servicio respondiendo que algo salio mal adentro. */
   failed: boolean;
 };
 
-type AskVars = {
-  id: string;
-  question: string;
-  countries: string[];
-  history: ConversationTurn[];
-};
+function emptyTurn(id: string, question: string, countries: string[]): Turn {
+  return {
+    id,
+    question,
+    countries,
+    phase: "translating",
+    sql: null,
+    columns: [],
+    rows: [],
+    rowCount: 0,
+    truncated: false,
+    narrative: null,
+    narrativeVerified: false,
+    outcome: null,
+    failed: false,
+  };
+}
+
+/**
+ * Reducer puro de un evento del stream sobre un turno.
+ *
+ * Un evento `error` no marca la fase como terminada: el backend siempre
+ * manda `done` despues, y esa es la unica señal de que el turno cerro.
+ */
+export function applyEvent(turn: Turn, event: StreamEvent): Turn {
+  switch (event.type) {
+    case "sql":
+      return { ...turn, sql: event.sql, phase: "querying" };
+    case "row_count":
+      return { ...turn, rowCount: event.rowCount, truncated: event.truncated };
+    case "rows":
+      return { ...turn, columns: event.columns, rows: event.rows, phase: "writing" };
+    case "narrative":
+      return { ...turn, narrative: event.text, narrativeVerified: event.verified };
+    case "error":
+      return { ...turn, outcome: event.outcome };
+    case "done":
+      return { ...turn, outcome: event.outcome, phase: "done" };
+  }
+}
 
 /**
  * Los ultimos turnos que de verdad respondieron, como contexto para resolver
@@ -37,16 +85,15 @@ type AskVars = {
 export function buildHistory(turns: Turn[]): ConversationTurn[] {
   return turns
     .filter((turn) => {
-      const response = turn.response;
-      if (!response?.sql_executed) return false;
-      const tone = classifyOutcome(response.outcome);
+      if (turn.phase !== "done" || !turn.sql || !turn.outcome) return false;
+      const tone = classifyOutcome(turn.outcome);
       return tone === "ok" || tone === "zero" || tone === "degraded";
     })
     .slice(-MAX_HISTORY)
     .map((turn) => ({
       question: turn.question,
       countries: turn.countries,
-      sql: turn.response!.sql_executed!,
+      sql: turn.sql!,
     }));
 }
 
@@ -54,49 +101,36 @@ export function buildHistory(turns: Turn[]): ConversationTurn[] {
  * Historial de la conversacion. Vive fuera del panel para que cerrarlo y
  * volverlo a abrir no borre lo que ya se pregunto.
  *
- * Cada pregunta es una llamada real a Claude con costo real (el presupuesto
- * la cobra antes de generar el SQL), asi que no hay reintento automatico --
- * el backend ya reintenta la generacion de SQL puertas adentro.
+ * Cada pregunta es una llamada real a Claude con costo real, asi que no hay
+ * reintento automatico -- el backend ya reintenta la generacion de SQL
+ * puertas adentro.
  */
 export function useAskConversation() {
   const [turns, setTurns] = useState<Turn[]>([]);
+  const [isPending, setIsPending] = useState(false);
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (vars: AskVars) =>
-      fetchQueryResult({
-        question: vars.question,
-        countries: vars.countries,
-        history: vars.history,
-      }),
-    retry: false,
-    onMutate: (vars) =>
-      setTurns((current) => [
-        ...current,
-        {
-          id: vars.id,
-          question: vars.question,
-          countries: vars.countries,
-          response: null,
-          failed: false,
-        } satisfies Turn,
-      ]),
-    onSuccess: (response, vars) =>
-      setTurns((current) =>
-        current.map((turn) => (turn.id === vars.id ? { ...turn, response } : turn)),
-      ),
-    onError: (_error, vars) =>
-      setTurns((current) =>
-        current.map((turn) => (turn.id === vars.id ? { ...turn, failed: true } : turn)),
-      ),
-  });
+  const ask = async (question: string, countries: string[]) => {
+    const id = crypto.randomUUID();
+    const history = buildHistory(turns);
+    setTurns((current) => [...current, emptyTurn(id, question, countries)]);
+    setIsPending(true);
 
-  const ask = (question: string, countries: string[]) =>
-    mutate({
-      id: crypto.randomUUID(),
-      question,
-      countries,
-      history: buildHistory(turns),
-    });
+    const update = (apply: (turn: Turn) => Turn) =>
+      setTurns((current) => current.map((turn) => (turn.id === id ? apply(turn) : turn)));
+
+    try {
+      for await (const event of streamQuery({ question, countries, history })) {
+        update((turn) => applyEvent(turn, event));
+      }
+      // Si el stream corto antes del `done`, el turno no puede quedarse
+      // girando para siempre.
+      update((turn) => (turn.phase === "done" ? turn : { ...turn, phase: "done", failed: true }));
+    } catch {
+      update((turn) => ({ ...turn, phase: "done", failed: true }));
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return { turns, ask, isPending };
 }

@@ -1,8 +1,14 @@
 import { SparkIcon } from "../../../components/icons";
 import { classifyOutcome } from "../outcome";
-import type { Turn } from "../useAskConversation";
+import type { Turn, TurnPhase } from "../useAskConversation";
 import { ResultTable } from "./ResultTable";
 import { StatusPanel } from "./StatusPanel";
+
+const PHASE_LABEL: Record<Exclude<TurnPhase, "done">, string> = {
+  translating: "Entendiendo tu pregunta…",
+  querying: "Consultando la base de datos…",
+  writing: "Redactando la respuesta…",
+};
 
 function QuestionBubble({ text }: { text: string }) {
   return (
@@ -28,93 +34,93 @@ function AnswerShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ThinkingBubble() {
+function PhaseStatus({ phase }: { phase: Exclude<TurnPhase, "done"> }) {
   return (
-    <AnswerShell>
-      <p className="flex items-center gap-2 font-sans text-sm text-ink-soft" aria-live="polite">
-        <span className="flex gap-1" aria-hidden="true">
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-quetzal [animation-delay:-0.3s]" />
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-quetzal [animation-delay:-0.15s]" />
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-quetzal" />
-        </span>
-        Buscando en los datos…
+    <p className="flex items-center gap-2 font-sans text-sm text-ink-soft" aria-live="polite">
+      <span className="flex gap-1" aria-hidden="true">
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-quetzal [animation-delay:-0.3s]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-quetzal [animation-delay:-0.15s]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-quetzal" />
+      </span>
+      {PHASE_LABEL[phase]}
+    </p>
+  );
+}
+
+function Narrative({ text, verified, plain }: { text: string; verified: boolean; plain: boolean }) {
+  if (plain) {
+    return <p className="font-sans text-sm leading-relaxed text-ink-soft">{text}</p>;
+  }
+  return (
+    <div>
+      <p className="font-display text-[16px] leading-relaxed text-ink">{text}</p>
+      <p className="mt-1.5 flex flex-wrap items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
+        Generado por IA
+        {verified && (
+          <span className="rounded-full bg-quetzal/10 px-2 py-0.5 normal-case tracking-normal text-quetzal">
+            Verificado contra los datos
+          </span>
+        )}
       </p>
-    </AnswerShell>
+    </div>
   );
 }
 
 /**
  * Un turno completo: la pregunta y su respuesta.
  *
- * Orden dentro de la respuesta: primero la prosa, despues la tabla. Es lo
- * contrario al orden de un informe (README: "datos arriba, prosa abajo"),
- * pero en un chat la frase que abre ("Claro, a continuacion te muestro...")
- * es justamente lo que presenta la tabla. La distincion dato/prosa se
- * sostiene igual: la insignia "generado por IA", la serif para el parrafo,
- * la monoespaciada para la tabla, y los numeros del parrafo sin resaltar.
+ * El orden vertical no cambia mientras llega el stream -- la respuesta arriba
+ * y la tabla debajo como evidencia. Lo que ocupa el lugar del parrafo
+ * mientras se redacta es el estado en curso, no un spinner mudo; y la tabla
+ * aparece apenas hay filas, sin esperar a que la redaccion termine. Asi se ve
+ * antes sin que nada salte de lugar.
  */
 export function AskTurn({ turn }: { turn: Turn }) {
   return (
     <div className="space-y-4">
       <QuestionBubble text={turn.question} />
-      {turn.failed ? (
-        <AnswerShell>
-          <StatusPanel tone="failed" />
-        </AnswerShell>
-      ) : !turn.response ? (
-        <ThinkingBubble />
-      ) : (
-        <AnswerTurn response={turn.response} />
-      )}
+      <AnswerShell>
+        <AnswerBody turn={turn} />
+      </AnswerShell>
     </div>
   );
 }
 
-function AnswerTurn({ response }: { response: NonNullable<Turn["response"]> }) {
-  const tone = classifyOutcome(response.outcome);
+function AnswerBody({ turn }: { turn: Turn }) {
+  if (turn.failed) return <StatusPanel tone="failed" />;
 
+  const tone = turn.outcome ? classifyOutcome(turn.outcome) : null;
+
+  // Rechazo, fuera de dominio, fallo o limite: no hay tabla que mostrar.
   if (tone === "out_of_scope" || tone === "rejected" || tone === "failed" || tone === "throttled") {
-    return (
-      <AnswerShell>
-        <StatusPanel tone={tone} />
-      </AnswerShell>
-    );
+    return <StatusPanel tone={tone} />;
   }
 
-  const isTemplateOnly = tone === "zero" || tone === "degraded";
+  // La plantilla determinista del backend (cero filas, o narrativa que el
+  // verificador descarto) no debe vestirse como prosa generada.
+  const plainNarrative = tone === "zero" || tone === "degraded";
+
   return (
-    <AnswerShell>
-      {response.narrative && (
-        <div>
-          <p
-            className={
-              isTemplateOnly
-                ? "font-sans text-sm leading-relaxed text-ink-soft"
-                : "font-display text-[16px] leading-relaxed text-ink"
-            }
-          >
-            {response.narrative}
-          </p>
-          {!isTemplateOnly && (
-            <p className="mt-1.5 flex flex-wrap items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
-              Generado por IA
-              {response.narrative_verified && (
-                <span className="rounded-full bg-quetzal/10 px-2 py-0.5 normal-case tracking-normal text-quetzal">
-                  Verificado contra los datos
-                </span>
-              )}
-            </p>
-          )}
-        </div>
+    <>
+      {turn.phase !== "done" ? (
+        <PhaseStatus phase={turn.phase} />
+      ) : (
+        turn.narrative && (
+          <Narrative
+            text={turn.narrative}
+            verified={turn.narrativeVerified}
+            plain={plainNarrative}
+          />
+        )
       )}
-      {response.row_count > 0 && (
+      {turn.rowCount > 0 && turn.columns.length > 0 && (
         <ResultTable
-          columns={response.columns}
-          rows={response.rows}
-          rowCount={response.row_count}
-          truncated={response.truncated}
+          columns={turn.columns}
+          rows={turn.rows}
+          rowCount={turn.rowCount}
+          truncated={turn.truncated}
         />
       )}
-    </AnswerShell>
+    </>
   );
 }
