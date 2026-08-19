@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { AskHeader } from "./components/AskHeader";
 import { NarrativeBlock } from "./components/NarrativeBlock";
 import { ResultTable } from "./components/ResultTable";
-import { SqlDisclosure } from "./components/SqlDisclosure";
 import { StatusPanel } from "./components/StatusPanel";
 import { classifyOutcome } from "./outcome";
 import { useAskQuery } from "./useAskQuery";
@@ -33,20 +32,17 @@ function LoadingPanel() {
 }
 
 /**
- * Orden vertical fijo (README): datos arriba, prosa abajo. El SQL cuenta como
- * parte de "datos" -- es la prueba de que el numero no fue inventado -- asi
- * que va entre la tabla y la narrativa, nunca despues.
+ * Orden vertical fijo (README): datos arriba, prosa abajo.
+ *
+ * El SQL ejecutado no se muestra por ahora (pedido explicito, 2026-08-18: se
+ * revisara mas adelante) -- el componente SqlDisclosure sigue existiendo,
+ * solo no se renderiza aqui.
  */
 function ResultView({ data }: { data: QueryResponse }) {
   const tone = classifyOutcome(data.outcome);
 
   if (tone === "out_of_scope" || tone === "rejected" || tone === "failed" || tone === "throttled") {
-    return (
-      <div className="space-y-4">
-        <StatusPanel tone={tone} />
-        {data.sql_executed && <SqlDisclosure sql={data.sql_executed} />}
-      </div>
-    );
+    return <StatusPanel tone={tone} />;
   }
 
   const isTemplateOnly = tone === "zero" || tone === "degraded";
@@ -60,7 +56,6 @@ function ResultView({ data }: { data: QueryResponse }) {
           truncated={data.truncated}
         />
       )}
-      {data.sql_executed && <SqlDisclosure sql={data.sql_executed} />}
       {data.narrative && (
         <NarrativeBlock
           text={data.narrative}

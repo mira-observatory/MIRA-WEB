@@ -1,4 +1,5 @@
 import { formatCount, formatDate, formatMoney } from "../../../lib/format";
+import { columnLabel } from "../columnLabels";
 import type { QueryColumn } from "../api";
 
 type Row = Record<string, unknown>;
@@ -92,7 +93,7 @@ export function ResultTable({ columns, rows, rowCount, truncated }: Props) {
                   scope="col"
                   className="whitespace-nowrap px-4 py-3 font-sans font-semibold"
                 >
-                  {column.name}
+                  {columnLabel(column.name)}
                   {(() => {
                     const currency = uniformCurrency(column, rows);
                     return currency ? (
