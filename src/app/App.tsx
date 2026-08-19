@@ -1,4 +1,5 @@
 import { FormEvent, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BuildingIcon,
   CalendarIcon,
@@ -59,6 +60,7 @@ function Brand() {
 }
 
 export function App() {
+  const navigate = useNavigate();
   const [selected, setSelected] = useState(["gt", "hn", "cr"]),
     [question, setQuestion] = useState(""),
     [notice, setNotice] = useState("");
@@ -72,11 +74,19 @@ export function App() {
     );
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    setNotice(
-      question.trim()
-        ? "Consulta preparada. La conexión con MIRA API se habilitará próximamente."
-        : "Escribe una pregunta para comenzar.",
-    );
+    if (!question.trim()) {
+      setNotice("Escribe una pregunta para comenzar.");
+      return;
+    }
+    if (selected.length === 0) {
+      setNotice("Selecciona al menos un país.");
+      return;
+    }
+    const params = new URLSearchParams({
+      q: question.trim(),
+      countries: selected.join(","),
+    });
+    navigate(`/preguntar?${params.toString()}`);
   };
   return (
     <div className="site-shell">
