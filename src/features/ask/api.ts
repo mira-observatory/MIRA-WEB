@@ -5,9 +5,12 @@ export type QueryResponse = components["schemas"]["QueryResponse"];
 export type QueryColumn = components["schemas"]["Column"];
 export type Outcome = components["schemas"]["Outcome"];
 
+export type ConversationTurn = components["schemas"]["ConversationTurn"];
+
 export async function fetchQueryResult(input: {
   question: string;
   countries: string[];
+  history?: ConversationTurn[];
 }): Promise<QueryResponse> {
   const { data, error } = await api.POST("/v1/query", {
     body: {
@@ -15,6 +18,7 @@ export async function fetchQueryResult(input: {
       countries: input.countries,
       narrative: true,
       entity_ids: [],
+      history: input.history ?? [],
     },
   });
   if (error) {

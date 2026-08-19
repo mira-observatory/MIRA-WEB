@@ -113,6 +113,28 @@ export interface components {
             currency_code?: string | null;
         };
         /**
+         * ConversationTurn
+         * @description Una pregunta anterior y el SQL que la respondio.
+         *
+         *     Se manda el SQL, no las filas: es lo que deja resolver un seguimiento como
+         *     "¿y en Honduras?" cambiandole el pais a la consulta anterior, y ocupa poco
+         *     en el prompt.
+         *
+         *     Lo escribe el cliente, asi que no es confiable -- pero tampoco necesita
+         *     serlo: nada de aqui se ejecuta. Solo entra al prompt, y todo lo que el
+         *     modelo produzca despues pasa igual por el validador (lista blanca de
+         *     vistas, filtro de pais, LIMIT). Lo peor que logra un historial falseado es
+         *     que el modelo genere SQL que el validador rechaza.
+         */
+        ConversationTurn: {
+            /** Question */
+            question: string;
+            /** Countries */
+            countries: string[];
+            /** Sql */
+            sql: string;
+        };
+        /**
          * CoverageNote
          * @description Que respalda esta respuesta en concreto.
          *
@@ -194,6 +216,11 @@ export interface components {
             question: string;
             /** Countries */
             countries: string[];
+            /**
+             * History
+             * @default []
+             */
+            history: components["schemas"]["ConversationTurn"][];
             /** Date From */
             date_from?: string | null;
             /** Date To */
