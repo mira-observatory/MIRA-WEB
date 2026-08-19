@@ -1,5 +1,4 @@
 import { FormEvent, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   BuildingIcon,
   CalendarIcon,
@@ -16,6 +15,8 @@ import {
   SparkIcon,
 } from "../components/icons";
 import { MiraLogo } from "../components/icons/MiraLogo";
+import { AskPanel } from "../features/ask/AskPanel";
+import { useAskConversation } from "../features/ask/useAskConversation";
 
 const countries = [
   { id: "gt", name: "Guatemala", flag: "🇬🇹", active: true },
@@ -60,18 +61,22 @@ function Brand() {
 }
 
 export function App() {
-  const navigate = useNavigate();
   const [selected, setSelected] = useState(["gt", "hn", "cr"]),
     [question, setQuestion] = useState(""),
-    [notice, setNotice] = useState("");
+    [notice, setNotice] = useState(""),
+    [panelOpen, setPanelOpen] = useState(false);
+  const conversation = useAskConversation();
   const allActiveSelected = useMemo(
     () => countries.filter((c) => c.active).every((c) => selected.includes(c.id)),
     [selected],
   );
+  // La API espera codigos ISO en mayuscula; los ids de los botones son minusculas.
+  const selectedCodes = useMemo(() => selected.map((id) => id.toUpperCase()), [selected]);
   const toggle = (id: string) =>
     setSelected((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
+  const ask = (text: string) => conversation.ask(text, selectedCodes);
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!question.trim()) {
@@ -82,11 +87,10 @@ export function App() {
       setNotice("Selecciona al menos un país.");
       return;
     }
-    const params = new URLSearchParams({
-      q: question.trim(),
-      countries: selected.join(","),
-    });
-    navigate(`/preguntar?${params.toString()}`);
+    setNotice("");
+    setPanelOpen(true);
+    ask(question.trim());
+    setQuestion("");
   };
   return (
     <div className="site-shell">
@@ -239,6 +243,14 @@ export function App() {
           Versión del prototipo 0.1 <b>·</b> Agosto 2026
         </span>
       </footer>
+      <AskPanel
+        open={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        turns={conversation.turns}
+        countries={selectedCodes}
+        isPending={conversation.isPending}
+        onAsk={ask}
+      />
     </div>
   );
 }
