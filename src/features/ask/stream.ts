@@ -9,6 +9,8 @@ export type StreamEvent =
   | { type: "error"; outcome: Outcome }
   | { type: "done"; outcome: Outcome };
 
+export const QUERY_STREAM_PATH = "/query/stream";
+
 /**
  * Traduce un frame SSE ("event: x\ndata: {...}") al evento tipado.
  * Devuelve null para lo que no reconoce -- un evento nuevo del backend no
@@ -78,7 +80,7 @@ export function drainFrames(buffer: string): { frames: string[]; rest: string } 
 }
 
 /**
- * POST /v1/query/stream consumido como SSE.
+ * POST /query/stream consumido como SSE.
  *
  * Es fetch a mano y no EventSource porque EventSource solo hace GET, y la
  * pregunta (con su historial) va en el cuerpo. `credentials: "include"` para
@@ -90,7 +92,7 @@ export async function* streamQuery(input: {
   history: ConversationTurn[];
   signal?: AbortSignal;
 }): AsyncGenerator<StreamEvent> {
-  const response = await fetch(`${import.meta.env.MIRA_API_BASE_URL}/v1/query/stream`, {
+  const response = await fetch(`${import.meta.env.MIRA_API_BASE_URL}${QUERY_STREAM_PATH}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

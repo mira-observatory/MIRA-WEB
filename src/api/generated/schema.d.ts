@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/entities/resolve": {
+    "/entities/resolve": {
         parameters: {
             query?: never;
             header?: never;
@@ -34,7 +34,7 @@ export interface paths {
          *     de lenguaje tocan esta ruta. Devuelve todos los candidatos con su conteo
          *     real; nunca fusiona nombres parecidos (caso Karro/Carro).
          */
-        get: operations["entities_resolve_v1_entities_resolve_get"];
+        get: operations["entities_resolve_entities_resolve_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -43,7 +43,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/query": {
+    "/query": {
         parameters: {
             query?: never;
             header?: never;
@@ -58,14 +58,14 @@ export interface paths {
          *     filas reales y las redacta en prosa verificada -- pero la tabla es la
          *     respuesta, el parrafo es un acompanante prescindible.
          */
-        post: operations["query_v1_query_post"];
+        post: operations["query_query_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/query/stream": {
+    "/query/stream": {
         parameters: {
             query?: never;
             header?: never;
@@ -76,7 +76,7 @@ export interface paths {
         put?: never;
         /**
          * Query Stream
-         * @description Misma traduccion, ejecucion y redaccion que POST /v1/query, pero
+         * @description Misma traduccion, ejecucion y redaccion que POST /query, pero
          *     transmitida por SSE segun cada fase queda lista: sql -> row_count -> rows
          *     -> narrative -> done (o error -> done si el pipeline corta antes).
          *
@@ -89,7 +89,7 @@ export interface paths {
          *     (`on_event`) que encola cada fase; toda la orquestacion (presupuesto, SQL,
          *     ejecucion, redaccion, auditoria) sigue viviendo en un solo lugar.
          */
-        post: operations["query_stream_v1_query_stream_post"];
+        post: operations["query_stream_query_stream_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -391,7 +391,7 @@ export interface operations {
             };
         };
     };
-    entities_resolve_v1_entities_resolve_get: {
+    entities_resolve_entities_resolve_get: {
         parameters: {
             query: {
                 q: string;
@@ -424,7 +424,7 @@ export interface operations {
             };
         };
     };
-    query_v1_query_post: {
+    query_query_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -457,7 +457,7 @@ export interface operations {
             };
         };
     };
-    query_stream_v1_query_stream_post: {
+    query_stream_query_stream_post: {
         parameters: {
             query?: never;
             header?: never;
