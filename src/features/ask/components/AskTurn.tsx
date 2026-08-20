@@ -48,6 +48,20 @@ function PhaseStatus({ phase }: { phase: Exclude<TurnPhase, "done"> }) {
   );
 }
 
+/**
+ * Por que el resultado vino vacio. Va arriba de todo y con peso visual: no es
+ * una nota al pie, es la respuesta. "No hubo contrataciones" y "no tenemos
+ * esos datos" son afirmaciones muy distintas, y confundirlas hace parecer que
+ * no pasa nada donde en realidad no estamos mirando.
+ */
+function CoverageWarning({ message }: { message: string }) {
+  return (
+    <div className="rounded-2xl border border-maize/30 bg-maize/10 px-5 py-4">
+      <p className="font-sans text-sm leading-relaxed text-[#8a6a15]">{message}</p>
+    </div>
+  );
+}
+
 function Narrative({ text, verified, plain }: { text: string; verified: boolean; plain: boolean }) {
   if (plain) {
     return <p className="font-sans text-sm leading-relaxed text-ink-soft">{text}</p>;
@@ -101,10 +115,17 @@ function AnswerBody({ turn }: { turn: Turn }) {
   // verificador descarto) no debe vestirse como prosa generada.
   const plainNarrative = tone === "zero" || tone === "degraded";
 
+  // Con un aviso de cobertura, ese aviso ES la respuesta: la narrativa de
+  // cero filas repite el mismo texto, asi que mostrar las dos seria decir lo
+  // mismo dos veces.
+  const aviso = turn.warnings[0];
+
   return (
     <>
       {turn.phase !== "done" ? (
         <PhaseStatus phase={turn.phase} />
+      ) : aviso ? (
+        <CoverageWarning message={aviso.message_es} />
       ) : (
         turn.narrative && (
           <Narrative

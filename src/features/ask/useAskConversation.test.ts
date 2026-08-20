@@ -17,6 +17,7 @@ function turn(overrides: Partial<Turn> = {}): Turn {
     narrative: null,
     narrativeVerified: false,
     outcome: "OK" as Outcome,
+    warnings: [],
     failed: false,
     ...overrides,
   };
@@ -49,6 +50,16 @@ describe("applyEvent", () => {
 
     expect(t.outcome).toBe("OUT_OF_SCOPE");
     expect(t.phase).toBe("translating");
+  });
+
+  it("guarda el aviso de cobertura que explica un resultado vacio", () => {
+    const t = applyEvent(turn(), {
+      type: "warnings",
+      warnings: [{ code: "PARTIAL_COVERAGE", message_es: "todavia no hay adjudicaciones" }],
+    });
+
+    expect(t.warnings).toHaveLength(1);
+    expect(t.warnings[0]!.code).toBe("PARTIAL_COVERAGE");
   });
 
   it("guarda la narrativa con su marca de verificacion", () => {

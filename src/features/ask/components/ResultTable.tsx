@@ -132,8 +132,7 @@ export function ResultTable({ columns, rows, rowCount, truncated }: Props) {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule px-4 py-2.5 text-xs text-ink-soft">
         <span className="font-mono">
-          {formatCount(rowCount)}{" "}
-          {rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows}
+          {formatCount(rowCount)} {rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows}
         </span>
         {truncated && (
           <span className="rounded-full bg-maize/15 px-2.5 py-1 font-sans font-medium text-[#8a6a15]">

@@ -1,10 +1,13 @@
 import type { ConversationTurn, Outcome, QueryColumn } from "./api";
 import { copy } from "../../i18n/copy";
 
+export type QueryWarning = { code: string; message_es: string };
+
 export type StreamEvent =
   | { type: "sql"; sql: string }
   | { type: "row_count"; rowCount: number; truncated: boolean }
   | { type: "rows"; columns: QueryColumn[]; rows: Record<string, unknown>[] }
+  | { type: "warnings"; warnings: QueryWarning[] }
   | { type: "narrative"; text: string | null; verified: boolean }
   | { type: "error"; outcome: Outcome }
   | { type: "done"; outcome: Outcome };
@@ -45,6 +48,8 @@ export function parseFrame(frame: string): StreamEvent | null {
         columns: (data.columns ?? []) as QueryColumn[],
         rows: (data.rows ?? []) as Record<string, unknown>[],
       };
+    case "warnings":
+      return { type: "warnings", warnings: (data.warnings ?? []) as QueryWarning[] };
     case "narrative":
       return {
         type: "narrative",
