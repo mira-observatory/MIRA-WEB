@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   BuildingIcon,
   CalendarIcon,
@@ -17,13 +17,23 @@ import {
 import { MiraLogo } from "../components/icons/MiraLogo";
 import { AskPanel } from "../features/ask/AskPanel";
 import { useAskConversation } from "../features/ask/useAskConversation";
+import { byCountryId, formatCoverageRange, useCoverage } from "../features/coverage/useCoverage";
 import { copy } from "../i18n/copy";
+import { formatCount, formatDate } from "../lib/format";
 
-const countries = [
-  { id: "gt", ...copy.countries.byId.gt, active: true },
-  { id: "hn", ...copy.countries.byId.hn, active: true },
-  { id: "cr", ...copy.countries.byId.cr, active: true },
-  { id: "sv", ...copy.countries.byId.sv, active: false },
+/**
+ * Catalogo de presentacion: nombre, bandera y orden. **No dice cuales estan
+ * disponibles** -- eso lo decide GET /coverage, que sabe que cargo el ETL.
+ * Tenerlo escrito a mano era como Guatemala y Honduras aparecian
+ * seleccionables con cero datos: preguntabas y recibias un cero que no se
+ * distinguia de "no hubo contrataciones".
+ */
+const COUNTRY_CATALOG = [
+  { id: "gt", ...copy.countries.byId.gt },
+  { id: "hn", ...copy.countries.byId.hn },
+  { id: "cr", ...copy.countries.byId.cr },
+  { id: "ni", ...copy.countries.byId.ni },
+  { id: "sv", ...copy.countries.byId.sv },
 ];
 const examples = [
   { Icon: BuildingIcon, text: copy.home.examples.mostContractsHonduras },
@@ -72,14 +82,50 @@ function Brand() {
 }
 
 export function App() {
-  const [selected, setSelected] = useState(["gt", "hn", "cr"]),
+  const [selected, setSelected] = useState<string[]>([]),
     [question, setQuestion] = useState(""),
     [notice, setNotice] = useState(""),
     [panelOpen, setPanelOpen] = useState(false);
   const conversation = useAskConversation();
+  const { data: coverage } = useCoverage();
+
+  // Un pais esta disponible si el ETL cargo datos suyos, no porque este en el
+  // catalogo. Mientras la cobertura viaja, ninguno lo esta: preferible un
+  // selector vacio un instante a ofrecer paises que quiza no responden.
+  const porPais = useMemo(() => byCountryId(coverage?.countries), [coverage]);
+  const countries = useMemo(
+    () =>
+      COUNTRY_CATALOG.map((country) => {
+        const datos = porPais[country.id];
+        return {
+          ...country,
+          active: datos?.status === "ACTIVE",
+          processCount: datos?.process_count ?? 0,
+        };
+      }),
+    [porPais],
+  );
+  const disponibles = useMemo(() => countries.filter((c) => c.active), [countries]);
+
+  // Se seleccionan solos los que tienen datos, en cuanto se sabe cuales son.
+  useEffect(() => {
+    if (disponibles.length > 0 && selected.length === 0) {
+      setSelected(disponibles.map((c) => c.id));
+    }
+    // Solo al llegar la cobertura: despues manda lo que elija la persona.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [disponibles.length]);
+
   const allActiveSelected = useMemo(
-    () => countries.filter((c) => c.active).every((c) => selected.includes(c.id)),
-    [selected],
+    () => disponibles.length > 0 && disponibles.every((c) => selected.includes(c.id)),
+    [disponibles, selected],
+  );
+
+  const m = copy.home.metrics;
+  const resumen = coverage?.summary;
+  const rangoCobertura = formatCoverageRange(
+    resumen?.coverage_from ?? null,
+    resumen?.coverage_to ?? null,
   );
   // La API espera codigos ISO en mayuscula; los ids de los botones son minusculas.
   const selectedCodes = useMemo(() => selected.map((id) => id.toUpperCase()), [selected]);
@@ -111,41 +157,57 @@ export function App() {
           <div className="metric">
             <GlobeIcon className="icon" size={38} />
             <div>
-              <small>{copy.home.metrics.countries.label}</small>
-              <strong className="tabular">{copy.home.metrics.countries.value}</strong>
-              <span>{copy.home.metrics.countries.caption}</span>
+              <small>{m.countries.label}</small>
+              <strong className="tabular">
+                {resumen ? `${disponibles.length} ${m.countries.activeSuffix}` : m.pending}
+              </strong>
+              <span>
+                {countries.length - disponibles.length} {m.countries.soonSuffix}
+              </span>
             </div>
           </div>
           <div className="metric">
             <CalendarIcon className="icon" size={38} />
             <div>
-              <small>{copy.home.metrics.coverage.label}</small>
-              <strong className="tabular">{copy.home.metrics.coverage.value}</strong>
-              <span>{copy.home.metrics.coverage.caption}</span>
+              <small>{m.coverage.label}</small>
+              <strong className="tabular">{rangoCobertura ?? m.pending}</strong>
+              <span>{m.coverage.caption}</span>
             </div>
           </div>
           <div className="metric">
             <RefreshIcon className="icon" size={38} />
             <div>
-              <small>{copy.home.metrics.updatedAt.label}</small>
-              <strong className="tabular">{copy.home.metrics.updatedAt.value}</strong>
-              <span className="tabular">{copy.home.metrics.updatedAt.caption}</span>
+              <small>{m.updatedAt.label}</small>
+              <strong className="tabular">
+                {resumen?.last_successful_load_at
+                  ? formatDate(resumen.last_successful_load_at)
+                  : m.pending}
+              </strong>
+              <span className="tabular">{m.updatedAt.caption}</span>
             </div>
           </div>
           <div className="metric">
             <DatabaseIcon className="icon" size={38} />
             <div>
-              <small>{copy.home.metrics.records.label}</small>
-              <strong className="tabular">{copy.home.metrics.records.value}</strong>
-              <span>{copy.home.metrics.records.caption}</span>
+              <small>{m.records.label}</small>
+              <strong className="tabular">
+                {resumen ? formatCount(resumen.process_count) : m.pending}
+              </strong>
+              <span>{m.records.caption}</span>
             </div>
           </div>
           <div className="metric">
             <DocumentIcon className="icon" size={38} />
             <div>
-              <small>{copy.home.metrics.sources.label}</small>
-              <strong className="tabular">{copy.home.metrics.sources.value}</strong>
-              <span>{copy.home.metrics.sources.caption}</span>
+              <small>{m.sources.label}</small>
+              <strong className="tabular">
+                {resumen ? formatCount(resumen.active_sources) : m.pending}
+              </strong>
+              <span>
+                {disponibles.length === 1
+                  ? m.sources.captionOne
+                  : m.sources.captionMany.replace("{n}", String(disponibles.length))}
+              </span>
             </div>
           </div>
         </section>
@@ -165,17 +227,25 @@ export function App() {
                 <span className="flag">{country.flag}</span>
                 <span>
                   {country.name}
-                  {!country.active && <small>{copy.countries.soon}</small>}
+                  {/* El conteo real distingue de un vistazo un pais completo de
+                      uno recien empezado -- Costa Rica y Nicaragua no estan
+                      igual de cargados, y la interfaz no deberia ocultarlo. */}
+                  {country.active ? (
+                    <small>
+                      {copy.countries.processCount.replace(
+                        "{n}",
+                        formatCount(country.processCount),
+                      )}
+                    </small>
+                  ) : (
+                    <small>{copy.countries.soon}</small>
+                  )}
                 </span>
               </button>
             ))}
             <button
               className={`country all ${allActiveSelected ? "selected" : ""}`}
-              onClick={() =>
-                setSelected(
-                  allActiveSelected ? [] : countries.filter((c) => c.active).map((c) => c.id),
-                )
-              }
+              onClick={() => setSelected(allActiveSelected ? [] : disponibles.map((c) => c.id))}
             >
               <span className="checkbox" aria-hidden="true">
                 {allActiveSelected ? "✓" : ""}

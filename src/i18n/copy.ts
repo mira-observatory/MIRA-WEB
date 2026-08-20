@@ -21,36 +21,44 @@ export const copy = {
     },
     emptySelection: "Sin países seleccionados",
     soon: "Próximamente",
+    //: Conteo real del pais, para que se vea de un vistazo cual esta completo
+    //: y cual recien empieza.
+    processCount: "{n} procesos",
     all: "Todos los países",
     selectorTitle: "Selecciona uno o más países",
   },
   home: {
     coverageAriaLabel: "Resumen de cobertura",
+    // Los valores ya no viven aqui: salen de GET /coverage, que los calcula el
+    // ETL. Estuvieron escritos a mano ("1,248,736 registros", "12 fuentes",
+    // "Ene 2021 – Ago 2026") y ninguno era cierto -- justo lo que un
+    // observatorio de transparencia no puede permitirse en su portada.
     metrics: {
+      //: Mientras la cobertura viaja. Nunca un numero: un placeholder numerico
+      //: es indistinguible de un dato real.
+      pending: "—",
+      unavailable: "sin dato",
       countries: {
         label: "Países disponibles",
-        value: "3 activos",
-        caption: "1 próximamente",
+        activeSuffix: "con datos",
+        soonSuffix: "próximamente",
       },
       coverage: {
         label: "Cobertura disponible",
-        value: "Ene 2021 – Ago 2026",
-        caption: "por país",
+        caption: "según los datos cargados",
       },
       updatedAt: {
         label: "Última actualización",
-        value: "10 ago 2026",
-        caption: "08:30 a. m. (GMT−6)",
+        caption: "última corrida del ETL",
       },
       records: {
-        label: "Registros disponibles",
-        value: "1,248,736",
-        caption: "registros normalizados",
+        label: "Procesos cargados",
+        caption: "en la base, no una estimación",
       },
       sources: {
         label: "Fuentes activas",
-        value: "12",
-        caption: "en 3 países",
+        captionOne: "en 1 país",
+        captionMany: "en {n} países",
       },
     },
     ask: {
@@ -60,8 +68,7 @@ export const copy = {
       placeholder:
         "Ejemplo: ¿Qué empresas recibieron más contratos de medicamentos en los países seleccionados entre 2024 y 2025?",
       submit: "Consultar",
-      trust:
-        "MIRA usa información pública oficial y siempre muestra la fuente de cada resultado.",
+      trust: "MIRA usa información pública oficial y siempre muestra la fuente de cada resultado.",
       examplesButton: "Ver ejemplos",
       examplesTitle: "Ejemplos de preguntas",
       missingQuestion: "Escribe una pregunta para comenzar.",
@@ -70,10 +77,8 @@ export const copy = {
     examples: {
       mostContractsHonduras: "¿Qué empresas recibieron más contratos en Honduras en 2025?",
       medicinePurchases: "Muéstrame compras de medicamentos en los países seleccionados.",
-      computerEquipmentCostaRica:
-        "¿Cuánto se contrató en equipo de cómputo en Costa Rica en 2024?",
-      directAwardInstitutions:
-        "¿Qué instituciones hicieron más compras por adjudicación directa?",
+      computerEquipmentCostaRica: "¿Cuánto se contrató en equipo de cómputo en Costa Rica en 2024?",
+      directAwardInstitutions: "¿Qué instituciones hicieron más compras por adjudicación directa?",
     },
     footer: {
       product: "Monitoreo Inteligente Regional de Adquisiciones",
@@ -105,13 +110,11 @@ export const copy = {
   status: {
     out_of_scope: {
       title: "Esta pregunta esta fuera de lo que MIRA puede responder hoy",
-      body:
-        "MIRA solo responde sobre procesos, adjudicaciones, compradores y proveedores de los paises disponibles. Intenta reformular tu pregunta.",
+      body: "MIRA solo responde sobre procesos, adjudicaciones, compradores y proveedores de los paises disponibles. Intenta reformular tu pregunta.",
     },
     rejected: {
       title: "No pudimos traducir tu pregunta a una consulta valida",
-      body:
-        "Intenta ser mas especifico: menciona el pais, el periodo o el tipo de dato que buscas.",
+      body: "Intenta ser mas especifico: menciona el pais, el periodo o el tipo de dato que buscas.",
     },
     failed: {
       title: "Hubo un error consultando los datos",
@@ -119,8 +122,7 @@ export const copy = {
     },
     throttled: {
       title: "MIRA alcanzo su limite de uso por ahora",
-      body:
-        "El servicio comparte un presupuesto diario entre todas las personas que preguntan. Intenta de nuevo mas tarde.",
+      body: "El servicio comparte un presupuesto diario entre todas las personas que preguntan. Intenta de nuevo mas tarde.",
     },
     invalid: {
       title: "Falta una pregunta o un pais",
