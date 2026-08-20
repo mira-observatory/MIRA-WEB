@@ -7,6 +7,6 @@ import type { paths } from "./generated/schema";
 // nada por ahora (la cuota por sujeto sigue inactiva del lado del servicio), pero
 // sin la cookie el fetch nunca la recibe ni la reenvia.
 export const api = createClient<paths>({
-  baseUrl: import.meta.env.VITE_API_BASE_URL,
+  baseUrl: import.meta.env.MIRA_API_BASE_URL,
   credentials: "include",
 });

@@ -90,7 +90,7 @@ export async function* streamQuery(input: {
   history: ConversationTurn[];
   signal?: AbortSignal;
 }): AsyncGenerator<StreamEvent> {
-  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/query/stream`, {
+  const response = await fetch(`${import.meta.env.MIRA_API_BASE_URL}/v1/query/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
