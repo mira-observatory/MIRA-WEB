@@ -12,7 +12,7 @@ export async function fetchQueryResult(input: {
   countries: string[];
   history?: ConversationTurn[];
 }): Promise<QueryResponse> {
-  const { data, error } = await api.POST("/v1/query", {
+  const { data, error } = await api.POST("/query", {
     body: {
       question: input.question,
       countries: input.countries,

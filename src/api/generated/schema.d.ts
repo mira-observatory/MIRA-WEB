@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Coverage
+         * @description Return exact, precomputed public coverage without invoking a model.
+         */
+        get: operations["get_coverage_coverage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -21,7 +41,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/entities/resolve": {
+    "/entities/resolve": {
         parameters: {
             query?: never;
             header?: never;
@@ -34,7 +54,7 @@ export interface paths {
          *     de lenguaje tocan esta ruta. Devuelve todos los candidatos con su conteo
          *     real; nunca fusiona nombres parecidos (caso Karro/Carro).
          */
-        get: operations["entities_resolve_v1_entities_resolve_get"];
+        get: operations["entities_resolve_entities_resolve_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -43,7 +63,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/query": {
+    "/query": {
         parameters: {
             query?: never;
             header?: never;
@@ -58,14 +78,14 @@ export interface paths {
          *     filas reales y las redacta en prosa verificada -- pero la tabla es la
          *     respuesta, el parrafo es un acompanante prescindible.
          */
-        post: operations["query_v1_query_post"];
+        post: operations["query_query_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/query/stream": {
+    "/query/stream": {
         parameters: {
             query?: never;
             header?: never;
@@ -76,7 +96,7 @@ export interface paths {
         put?: never;
         /**
          * Query Stream
-         * @description Misma traduccion, ejecucion y redaccion que POST /v1/query, pero
+         * @description Misma traduccion, ejecucion y redaccion que POST /query, pero
          *     transmitida por SSE segun cada fase queda lista: sql -> row_count -> rows
          *     -> narrative -> done (o error -> done si el pipeline corta antes).
          *
@@ -89,7 +109,7 @@ export interface paths {
          *     (`on_event`) que encola cada fase; toda la orquestacion (presupuesto, SQL,
          *     ejecucion, redaccion, auditoria) sigue viviendo en un solo lugar.
          */
-        post: operations["query_stream_v1_query_stream_post"];
+        post: operations["query_stream_query_stream_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -134,6 +154,32 @@ export interface components {
             /** Sql */
             sql: string;
         };
+        /** CoverageCountry */
+        CoverageCountry: {
+            /** Country Code */
+            country_code: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ACTIVE" | "PLANNED" | "INACTIVE";
+            /** Active Sources */
+            active_sources: number;
+            /** Process Count */
+            process_count: number;
+            /** Buyer Count */
+            buyer_count: number;
+            /** Supplier Count */
+            supplier_count: number;
+            /** Coverage From */
+            coverage_from?: string | null;
+            /** Coverage To */
+            coverage_to?: string | null;
+            /** Last Successful Load At */
+            last_successful_load_at?: string | null;
+            /** Sources */
+            sources?: components["schemas"]["CoverageSource"][];
+        };
         /**
          * CoverageNote
          * @description Que respalda esta respuesta en concreto.
@@ -154,6 +200,63 @@ export interface components {
             rows_with_amount?: number | null;
             /** Data Version */
             data_version?: string | null;
+        };
+        /** CoverageResponse */
+        CoverageResponse: {
+            summary: components["schemas"]["CoverageSummary"];
+            /** Countries */
+            countries?: components["schemas"]["CoverageCountry"][];
+        };
+        /** CoverageSource */
+        CoverageSource: {
+            /** Source Key */
+            source_key: string;
+            /** Source System */
+            source_system: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ACTIVE" | "PLANNED" | "INACTIVE";
+            /** Process Count */
+            process_count: number;
+            /** Buyer Count */
+            buyer_count: number;
+            /** Supplier Count */
+            supplier_count: number;
+            /** Coverage From */
+            coverage_from?: string | null;
+            /** Coverage To */
+            coverage_to?: string | null;
+            /** Complete Process Count */
+            complete_process_count: number;
+            /** Partial Process Count */
+            partial_process_count: number;
+            /** Process Without Date Count */
+            process_without_date_count: number;
+            /** Last Successful Load At */
+            last_successful_load_at?: string | null;
+            /** Refreshed At */
+            refreshed_at?: string | null;
+        };
+        /** CoverageSummary */
+        CoverageSummary: {
+            /** Active Countries */
+            active_countries: number;
+            /** Planned Countries */
+            planned_countries: number;
+            /** Active Sources */
+            active_sources: number;
+            /** Process Count */
+            process_count: number;
+            /** Coverage From */
+            coverage_from?: string | null;
+            /** Coverage To */
+            coverage_to?: string | null;
+            /** Last Successful Load At */
+            last_successful_load_at?: string | null;
         };
         /**
          * EntityCandidate
@@ -369,6 +472,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_coverage_coverage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverageResponse"];
+                };
+            };
+        };
+    };
     healthz_healthz_get: {
         parameters: {
             query?: never;
@@ -391,7 +514,7 @@ export interface operations {
             };
         };
     };
-    entities_resolve_v1_entities_resolve_get: {
+    entities_resolve_entities_resolve_get: {
         parameters: {
             query: {
                 q: string;
@@ -424,7 +547,7 @@ export interface operations {
             };
         };
     };
-    query_v1_query_post: {
+    query_query_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -457,7 +580,7 @@ export interface operations {
             };
         };
     };
-    query_stream_v1_query_stream_post: {
+    query_stream_query_stream_post: {
         parameters: {
             query?: never;
             header?: never;

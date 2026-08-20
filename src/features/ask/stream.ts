@@ -77,7 +77,7 @@ export function drainFrames(buffer: string): { frames: string[]; rest: string } 
 }
 
 /**
- * POST /v1/query/stream consumido como SSE.
+ * POST /query/stream consumido como SSE.
  *
  * Es fetch a mano y no EventSource porque EventSource solo hace GET, y la
  * pregunta (con su historial) va en el cuerpo. `credentials: "include"` para
@@ -89,7 +89,7 @@ export async function* streamQuery(input: {
   history: ConversationTurn[];
   signal?: AbortSignal;
 }): AsyncGenerator<StreamEvent> {
-  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/query/stream`, {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/query/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
