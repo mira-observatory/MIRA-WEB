@@ -1,4 +1,5 @@
-import { FormEvent, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   BuildingIcon,
   CalendarIcon,
@@ -17,16 +18,20 @@ import {
 import { MiraLogo } from "../components/icons/MiraLogo";
 import { AskPanel } from "../features/ask/AskPanel";
 import { useAskConversation } from "../features/ask/useAskConversation";
+import { fetchCoverage } from "../features/coverage/api";
+import type { CoverageCountry } from "../features/coverage/api";
 import { copy } from "../i18n/copy";
+import { formatCount } from "../lib/format";
 
-const countries = [
-  { id: "gt", ...copy.countries.byId.gt, flagImage: "/flags/gt.svg", active: true },
-  { id: "hn", ...copy.countries.byId.hn, flagImage: "/flags/hn.svg", active: true },
-  { id: "cr", ...copy.countries.byId.cr, flagImage: "/flags/cr.svg", active: true },
-  { id: "sv", ...copy.countries.byId.sv, flagImage: "/flags/sv.svg", active: false },
-  { id: "ni", ...copy.countries.byId.ni, flagImage: "/flags/ni.svg", active: false },
-  { id: "pa", ...copy.countries.byId.pa, flagImage: "/flags/pa.svg", active: false },
+const countryMetadata = [
+  { id: "gt", code: "GT", ...copy.countries.byId.gt, flagImage: "/flags/gt.svg" },
+  { id: "hn", code: "HN", ...copy.countries.byId.hn, flagImage: "/flags/hn.svg" },
+  { id: "cr", code: "CR", ...copy.countries.byId.cr, flagImage: "/flags/cr.svg" },
+  { id: "sv", code: "SV", ...copy.countries.byId.sv, flagImage: "/flags/sv.svg" },
+  { id: "ni", code: "NI", ...copy.countries.byId.ni, flagImage: "/flags/ni.svg" },
+  { id: "pa", code: "PA", ...copy.countries.byId.pa, flagImage: "/flags/pa.svg" },
 ];
+
 const examples = [
   { Icon: BuildingIcon, text: copy.home.examples.mostContractsHonduras },
   { Icon: PillIcon, text: copy.home.examples.medicinePurchases },
@@ -36,6 +41,47 @@ const examples = [
     text: copy.home.examples.directAwardInstitutions,
   },
 ];
+
+const MONTH_YEAR_FORMAT = new Intl.DateTimeFormat("es", {
+  month: "short",
+  year: "numeric",
+});
+const DATE_FORMAT = new Intl.DateTimeFormat("es", { dateStyle: "medium" });
+const TIME_FORMAT = new Intl.DateTimeFormat("es", {
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZoneName: "short",
+});
+
+function dateOnly(value: string): Date {
+  const [year = "0", month = "1", day = "1"] = value.split("-");
+  return new Date(Number(year), Number(month) - 1, Number(day));
+}
+
+function capitalize(value: string): string {
+  return value ? `${value[0]?.toUpperCase()}${value.slice(1)}` : value;
+}
+
+function formatCoverageRange(from: string | null | undefined, to: string | null | undefined) {
+  if (!from || !to) return copy.format.missingDate;
+  const fromLabel = capitalize(MONTH_YEAR_FORMAT.format(dateOnly(from)));
+  const toLabel = capitalize(MONTH_YEAR_FORMAT.format(dateOnly(to)));
+  return `${fromLabel} - ${toLabel}`;
+}
+
+function formatCoverageDate(value: string | null | undefined) {
+  if (!value) return copy.format.missingDate;
+  return DATE_FORMAT.format(new Date(value));
+}
+
+function formatCoverageTime(value: string | null | undefined) {
+  if (!value) return copy.format.missingDate;
+  return TIME_FORMAT.format(new Date(value));
+}
+
+function countryByCode(countries: CoverageCountry[], code: string) {
+  return countries.find((country) => country.country_code.toUpperCase() === code);
+}
 
 function Brand() {
   return (
@@ -49,7 +95,7 @@ function Brand() {
               {index > 0 && (
                 <>
                   {" "}
-                  <b>•</b>{" "}
+                  <b>*</b>{" "}
                 </>
               )}
               {part}
@@ -63,25 +109,54 @@ function Brand() {
         </div>
       </div>
       <div className="region-dots" aria-hidden="true">
-        ⠐⠘⠰
+        . . .
         <br />
-        ⠀⠈⠘⠰
-        <br />
-        ⠀⠀⠀⠈⠘⠰
+        . . . .
+        <br />. . . . .
       </div>
     </header>
   );
 }
 
 export function App() {
-  const [selected, setSelected] = useState(["gt", "hn", "cr"]),
+  const [selected, setSelected] = useState<string[]>([]),
     [question, setQuestion] = useState(""),
     [notice, setNotice] = useState(""),
-    [panelOpen, setPanelOpen] = useState(false);
+    [panelOpen, setPanelOpen] = useState(false),
+    [coverageInitialized, setCoverageInitialized] = useState(false);
   const conversation = useAskConversation();
+  const coverageQuery = useQuery({
+    queryKey: ["coverage"],
+    queryFn: fetchCoverage,
+  });
+  const coverage = coverageQuery.data;
+  const coverageSummary = coverage?.summary;
+  const countryOptions = useMemo(
+    () =>
+      countryMetadata.map((country) => {
+        const backendCountry = coverage
+          ? countryByCode(coverage.countries, country.code)
+          : undefined;
+        return {
+          ...country,
+          status: backendCountry?.status,
+          active: backendCountry?.status === "ACTIVE",
+        };
+      }),
+    [coverage],
+  );
+  const activeCountryIds = useMemo(
+    () => countryOptions.filter((country) => country.active).map((country) => country.id),
+    [countryOptions],
+  );
+  useEffect(() => {
+    if (!coverage || coverageInitialized) return;
+    setSelected(activeCountryIds);
+    setCoverageInitialized(true);
+  }, [activeCountryIds, coverage, coverageInitialized]);
   const allActiveSelected = useMemo(
-    () => countries.filter((c) => c.active).every((c) => selected.includes(c.id)),
-    [selected],
+    () => activeCountryIds.length > 0 && activeCountryIds.every((id) => selected.includes(id)),
+    [activeCountryIds, selected],
   );
   // La API espera codigos ISO en mayuscula; los ids de los botones son minusculas.
   const selectedCodes = useMemo(() => selected.map((id) => id.toUpperCase()), [selected]);
@@ -90,6 +165,11 @@ export function App() {
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
   const ask = (text: string) => conversation.ask(text, selectedCodes);
+  const metricValue = (value: string) => {
+    if (coverageQuery.isLoading) return copy.home.loadingCoverage;
+    if (coverageQuery.isError) return copy.home.unavailableCoverage;
+    return value;
+  };
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!question.trim()) {
@@ -105,6 +185,7 @@ export function App() {
     ask(question.trim());
     setQuestion("");
   };
+
   return (
     <div className="site-shell">
       <main className="page">
@@ -114,15 +195,23 @@ export function App() {
             <GlobeIcon className="icon" size={38} />
             <div>
               <small>{copy.home.metrics.countries.label}</small>
-              <strong className="tabular">{copy.home.metrics.countries.value}</strong>
-              <span>{copy.home.metrics.countries.caption}</span>
+              <strong className="tabular">
+                {metricValue(`${formatCount(coverageSummary?.active_countries)} activos`)}
+              </strong>
+              <span>
+                {metricValue(`${formatCount(coverageSummary?.planned_countries)} proximamente`)}
+              </span>
             </div>
           </div>
           <div className="metric">
             <CalendarIcon className="icon" size={38} />
             <div>
               <small>{copy.home.metrics.coverage.label}</small>
-              <strong className="tabular">{copy.home.metrics.coverage.value}</strong>
+              <strong className="tabular">
+                {metricValue(
+                  formatCoverageRange(coverageSummary?.coverage_from, coverageSummary?.coverage_to),
+                )}
+              </strong>
               <span>{copy.home.metrics.coverage.caption}</span>
             </div>
           </div>
@@ -130,15 +219,21 @@ export function App() {
             <RefreshIcon className="icon" size={38} />
             <div>
               <small>{copy.home.metrics.updatedAt.label}</small>
-              <strong className="tabular">{copy.home.metrics.updatedAt.value}</strong>
-              <span className="tabular">{copy.home.metrics.updatedAt.caption}</span>
+              <strong className="tabular">
+                {metricValue(formatCoverageDate(coverageSummary?.last_successful_load_at))}
+              </strong>
+              <span className="tabular">
+                {metricValue(formatCoverageTime(coverageSummary?.last_successful_load_at))}
+              </span>
             </div>
           </div>
           <div className="metric">
             <DatabaseIcon className="icon" size={38} />
             <div>
               <small>{copy.home.metrics.records.label}</small>
-              <strong className="tabular">{copy.home.metrics.records.value}</strong>
+              <strong className="tabular">
+                {metricValue(formatCount(coverageSummary?.process_count))}
+              </strong>
               <span>{copy.home.metrics.records.caption}</span>
             </div>
           </div>
@@ -146,15 +241,19 @@ export function App() {
             <DocumentIcon className="icon" size={38} />
             <div>
               <small>{copy.home.metrics.sources.label}</small>
-              <strong className="tabular">{copy.home.metrics.sources.value}</strong>
-              <span>{copy.home.metrics.sources.caption}</span>
+              <strong className="tabular">
+                {metricValue(formatCount(coverageSummary?.active_sources))}
+              </strong>
+              <span>
+                {metricValue(`en ${formatCount(coverageSummary?.active_countries)} paises`)}
+              </span>
             </div>
           </div>
         </section>
         <section className="countries card">
           <h2>{copy.countries.selectorTitle}</h2>
           <div className="country-grid">
-            {countries.map((country) => (
+            {countryOptions.map((country) => (
               <button
                 key={country.id}
                 disabled={!country.active}
@@ -173,11 +272,8 @@ export function App() {
             ))}
             <button
               className={`country all ${allActiveSelected ? "selected" : ""}`}
-              onClick={() =>
-                setSelected(
-                  allActiveSelected ? [] : countries.filter((c) => c.active).map((c) => c.id),
-                )
-              }
+              onClick={() => setSelected(allActiveSelected ? [] : activeCountryIds)}
+              disabled={activeCountryIds.length === 0}
             >
               <span className="checkbox" aria-hidden="true">
                 {allActiveSelected ? "✓" : ""}
@@ -249,11 +345,11 @@ export function App() {
       </main>
       <footer>
         <span>
-          <strong>{copy.brand.name}</strong> · {copy.home.footer.product}
+          <strong>{copy.brand.name}</strong> - {copy.home.footer.product}
         </span>
         <span>{copy.home.footer.initiative}</span>
         <span>
-          {copy.home.footer.version} <b>·</b> {copy.home.footer.date}
+          {copy.home.footer.version} <b>-</b> {copy.home.footer.date}
         </span>
       </footer>
       <AskPanel
