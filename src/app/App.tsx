@@ -20,10 +20,12 @@ import { useAskConversation } from "../features/ask/useAskConversation";
 import { copy } from "../i18n/copy";
 
 const countries = [
-  { id: "gt", ...copy.countries.byId.gt, active: true },
-  { id: "hn", ...copy.countries.byId.hn, active: true },
-  { id: "cr", ...copy.countries.byId.cr, active: true },
-  { id: "sv", ...copy.countries.byId.sv, active: false },
+  { id: "gt", ...copy.countries.byId.gt, flagImage: "/flags/gt.svg", active: true },
+  { id: "hn", ...copy.countries.byId.hn, flagImage: "/flags/hn.svg", active: true },
+  { id: "cr", ...copy.countries.byId.cr, flagImage: "/flags/cr.svg", active: true },
+  { id: "sv", ...copy.countries.byId.sv, flagImage: "/flags/sv.svg", active: false },
+  { id: "ni", ...copy.countries.byId.ni, flagImage: "/flags/ni.svg", active: false },
+  { id: "pa", ...copy.countries.byId.pa, flagImage: "/flags/pa.svg", active: false },
 ];
 const examples = [
   { Icon: BuildingIcon, text: copy.home.examples.mostContractsHonduras },
@@ -162,7 +164,7 @@ export function App() {
                 <span className="checkbox" aria-hidden="true">
                   {selected.includes(country.id) ? "✓" : ""}
                 </span>
-                <span className="flag">{country.flag}</span>
+                <img className="flag" src={country.flagImage} alt="" aria-hidden="true" />
                 <span>
                   {country.name}
                   {!country.active && <small>{copy.countries.soon}</small>}

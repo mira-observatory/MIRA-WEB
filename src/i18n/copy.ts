@@ -30,7 +30,7 @@ export const copy = {
       countries: {
         label: "Países disponibles",
         value: "3 activos",
-        caption: "1 próximamente",
+        caption: "3 próximamente",
       },
       coverage: {
         label: "Cobertura disponible",
