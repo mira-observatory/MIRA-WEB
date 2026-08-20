@@ -21,6 +21,8 @@ export type CoverageSource = {
 
 export type CoverageCountry = {
   country_code: string;
+  country_name: string;
+  flag_asset: string | null;
   status: CoverageStatus;
   active_sources: number;
   process_count: number;

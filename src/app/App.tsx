@@ -19,18 +19,10 @@ import { MiraLogo } from "../components/icons/MiraLogo";
 import { AskPanel } from "../features/ask/AskPanel";
 import { useAskConversation } from "../features/ask/useAskConversation";
 import { fetchCoverage } from "../features/coverage/api";
-import type { CoverageCountry } from "../features/coverage/api";
 import { copy } from "../i18n/copy";
 import { formatCount } from "../lib/format";
 
-const countryMetadata = [
-  { id: "gt", code: "GT", ...copy.countries.byId.gt, flagImage: "/flags/gt.svg" },
-  { id: "hn", code: "HN", ...copy.countries.byId.hn, flagImage: "/flags/hn.svg" },
-  { id: "cr", code: "CR", ...copy.countries.byId.cr, flagImage: "/flags/cr.svg" },
-  { id: "sv", code: "SV", ...copy.countries.byId.sv, flagImage: "/flags/sv.svg" },
-  { id: "ni", code: "NI", ...copy.countries.byId.ni, flagImage: "/flags/ni.svg" },
-  { id: "pa", code: "PA", ...copy.countries.byId.pa, flagImage: "/flags/pa.svg" },
-];
+const GENERIC_FLAG_ASSET = "/flags/generic.svg";
 
 const examples = [
   { Icon: BuildingIcon, text: copy.home.examples.mostContractsHonduras },
@@ -77,10 +69,6 @@ function formatCoverageDate(value: string | null | undefined) {
 function formatCoverageTime(value: string | null | undefined) {
   if (!value) return copy.format.missingDate;
   return TIME_FORMAT.format(new Date(value));
-}
-
-function countryByCode(countries: CoverageCountry[], code: string) {
-  return countries.find((country) => country.country_code.toUpperCase() === code);
 }
 
 function Brand() {
@@ -133,14 +121,15 @@ export function App() {
   const coverageSummary = coverage?.summary;
   const countryOptions = useMemo(
     () =>
-      countryMetadata.map((country) => {
-        const backendCountry = coverage
-          ? countryByCode(coverage.countries, country.code)
-          : undefined;
+      (coverage?.countries ?? []).map((country) => {
+        const code = country.country_code.toUpperCase();
         return {
-          ...country,
-          status: backendCountry?.status,
-          active: backendCountry?.status === "ACTIVE",
+          id: code.toLowerCase(),
+          code,
+          name: country.country_name,
+          flagImage: country.flag_asset ?? GENERIC_FLAG_ASSET,
+          status: country.status,
+          active: country.status === "ACTIVE",
         };
       }),
     [coverage],
@@ -263,7 +252,16 @@ export function App() {
                 <span className="checkbox" aria-hidden="true">
                   {selected.includes(country.id) ? "✓" : ""}
                 </span>
-                <img className="flag" src={country.flagImage} alt="" aria-hidden="true" />
+                <img
+                  className="flag"
+                  src={country.flagImage}
+                  alt=""
+                  aria-hidden="true"
+                  onError={(event) => {
+                    if (event.currentTarget.src.endsWith(GENERIC_FLAG_ASSET)) return;
+                    event.currentTarget.src = GENERIC_FLAG_ASSET;
+                  }}
+                />
                 <span>
                   {country.name}
                   {!country.active && <small>{copy.countries.soon}</small>}
