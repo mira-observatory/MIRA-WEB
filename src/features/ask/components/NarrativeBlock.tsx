@@ -1,4 +1,5 @@
 import { SparkIcon } from "../../../components/icons";
+import { copy } from "../../../i18n/copy";
 
 type Props = {
   text: string;
@@ -26,10 +27,10 @@ export function NarrativeBlock({ text, verified, isTemplateOnly }: Props) {
     <div className="rounded-2xl border border-isthmus/15 bg-white px-6 py-5 shadow-sm">
       <div className="mb-3 flex flex-wrap items-center gap-2 font-sans text-xs font-semibold uppercase tracking-wide text-isthmus">
         <SparkIcon size={15} />
-        Generado por IA
+        {copy.askTurn.generatedByAi}
         {verified && (
           <span className="rounded-full bg-quetzal/10 px-2 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-quetzal">
-            Verificado contra los datos de la tabla
+            {copy.askTurn.verifiedAgainstTable}
           </span>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { formatCount, formatDate, formatMoney } from "../../../lib/format";
+import { copy } from "../../../i18n/copy";
 import { columnLabel } from "../columnLabels";
 import type { QueryColumn } from "../api";
 
@@ -58,7 +59,9 @@ export function formatCell(
     case "number":
       return formatCount(toNumber(value));
     default:
-      return value === null || value === undefined || value === "" ? "—" : String(value);
+      return value === null || value === undefined || value === ""
+        ? copy.table.emptyCell
+        : String(value);
   }
 }
 
@@ -129,11 +132,12 @@ export function ResultTable({ columns, rows, rowCount, truncated }: Props) {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule px-4 py-2.5 text-xs text-ink-soft">
         <span className="font-mono">
-          {formatCount(rowCount)} {rowCount === 1 ? "fila" : "filas"}
+          {formatCount(rowCount)}{" "}
+          {rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows}
         </span>
         {truncated && (
           <span className="rounded-full bg-maize/15 px-2.5 py-1 font-sans font-medium text-[#8a6a15]">
-            Resultado truncado -- hay mas filas de las que se muestran aqui
+            {copy.table.truncated}
           </span>
         )}
       </div>

@@ -7,6 +7,8 @@
  * que agregar entre paises produciria una cifra falsa.
  */
 
+import { copy } from "../i18n/copy";
+
 const LOCALE_BY_COUNTRY: Record<string, string> = {
   GT: "es-GT",
   HN: "es-HN",
@@ -25,11 +27,11 @@ export function formatMoney(
   currencyCode: string | null | undefined,
   countryCode?: string,
 ): string {
-  if (value === null || value === undefined) return "sin dato";
+  if (value === null || value === undefined) return copy.format.missingData;
   if (!currencyCode) {
     // Hay registros sin moneda declarada. Se muestran como numero desnudo y se
     // reportan aparte, nunca se descartan en silencio ni se asumen en una moneda.
-    return `${new Intl.NumberFormat("es").format(value)} (sin moneda declarada)`;
+    return `${new Intl.NumberFormat("es").format(value)} (${copy.format.missingCurrency})`;
   }
   const locale = (countryCode && LOCALE_BY_COUNTRY[countryCode]) || "es";
   return new Intl.NumberFormat(locale, {
@@ -40,12 +42,12 @@ export function formatMoney(
 }
 
 export function formatCount(value: number | null | undefined): string {
-  if (value === null || value === undefined) return "sin dato";
+  if (value === null || value === undefined) return copy.format.missingData;
   return new Intl.NumberFormat("es").format(value);
 }
 
 export function formatDate(value: string | null | undefined, countryCode?: string): string {
-  if (!value) return "sin fecha";
+  if (!value) return copy.format.missingDate;
   const locale = (countryCode && LOCALE_BY_COUNTRY[countryCode]) || "es";
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(value));
 }
