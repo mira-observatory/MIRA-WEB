@@ -1,5 +1,6 @@
 import { api } from "../../api/client";
 import type { components } from "../../api/generated/schema";
+import { copy } from "../../i18n/copy";
 
 export type QueryResponse = components["schemas"]["QueryResponse"];
 export type QueryColumn = components["schemas"]["Column"];
@@ -24,7 +25,7 @@ export async function fetchQueryResult(input: {
   if (error) {
     const detail = Array.isArray(error.detail)
       ? error.detail.map((item) => item.msg).join(" ")
-      : "La pregunta o los paises no son validos.";
+      : copy.errors.invalidQuestionOrCountries;
     throw new Error(detail);
   }
   return data;

@@ -1,3 +1,5 @@
+import { copy } from "../../../i18n/copy";
+
 type Props = { sql: string };
 
 /**
@@ -16,7 +18,7 @@ export function SqlDisclosure({ sql }: Props) {
         >
           ›
         </span>
-        Ver el SQL ejecutado
+        {copy.sql.reveal}
       </summary>
       <pre className="mt-3 overflow-x-auto rounded-xl bg-ink px-4 py-3 font-mono text-xs leading-relaxed text-paper">
         <code>{sql}</code>

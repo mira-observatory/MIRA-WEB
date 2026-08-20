@@ -1,4 +1,5 @@
 import type { ConversationTurn, Outcome, QueryColumn } from "./api";
+import { copy } from "../../i18n/copy";
 
 export type StreamEvent =
   | { type: "sql"; sql: string }
@@ -104,7 +105,7 @@ export async function* streamQuery(input: {
   });
 
   if (!response.ok || !response.body) {
-    throw new Error(`El servicio respondio ${response.status}`);
+    throw new Error(`${copy.errors.serviceResponded} ${response.status}`);
   }
 
   const reader = response.body.getReader();

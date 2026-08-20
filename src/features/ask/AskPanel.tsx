@@ -2,16 +2,17 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { SendIcon } from "../../components/icons";
 import { MiraLogo } from "../../components/icons/MiraLogo";
+import { copy } from "../../i18n/copy";
 import { AskTurn } from "./components/AskTurn";
 import type { Turn } from "./useAskConversation";
 
 const COUNTRY_LABEL: Record<string, string> = {
-  GT: "🇬🇹 Guatemala",
-  HN: "🇭🇳 Honduras",
-  CR: "🇨🇷 Costa Rica",
-  SV: "🇸🇻 El Salvador",
-  NI: "🇳🇮 Nicaragua",
-  PA: "🇵🇦 Panamá",
+  GT: `${copy.countries.byId.gt.flag} ${copy.countries.byId.gt.name}`,
+  HN: `${copy.countries.byId.hn.flag} ${copy.countries.byId.hn.name}`,
+  CR: `${copy.countries.byId.cr.flag} ${copy.countries.byId.cr.name}`,
+  SV: `${copy.countries.byId.sv.flag} ${copy.countries.byId.sv.name}`,
+  NI: `${copy.countries.byId.ni.flag} ${copy.countries.byId.ni.name}`,
+  PA: `${copy.countries.byId.pa.flag} ${copy.countries.byId.pa.name}`,
 };
 
 type Props = {
@@ -79,14 +80,14 @@ export function AskPanel({ open, onClose, turns, countries, isPending, onAsk }: 
     >
       <button
         type="button"
-        aria-label="Cerrar el asistente"
+        aria-label={copy.askPanel.closeAssistantLabel}
         onClick={onClose}
         className="absolute inset-0 h-full w-full cursor-default bg-ink/30 backdrop-blur-[2px]"
       />
       <aside
         role="dialog"
         aria-modal="true"
-        aria-label="Asistente MIRA"
+        aria-label={copy.askPanel.dialogLabel}
         className={`absolute right-0 top-0 flex h-full w-[min(760px,100%)] flex-col bg-paper shadow-2xl transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
@@ -94,17 +95,19 @@ export function AskPanel({ open, onClose, turns, countries, isPending, onAsk }: 
         <header className="flex flex-none items-center gap-3 border-b border-rule bg-paper-raised px-5 py-3.5">
           <MiraLogo className="h-8 w-8 flex-none" />
           <div className="min-w-0 flex-1">
-            <p className="font-sans text-sm font-semibold text-ink">Asistente MIRA</p>
+            <p className="font-sans text-sm font-semibold text-ink">{copy.askPanel.title}</p>
             <p className="truncate font-sans text-xs text-ink-soft">
               {countries.length > 0
-                ? countries.map((code) => COUNTRY_LABEL[code] ?? code).join(" · ")
-                : "Sin países seleccionados"}
+                ? countries
+                    .map((code) => COUNTRY_LABEL[code] ?? code)
+                    .join(copy.askPanel.countrySeparator)
+                : copy.countries.emptySelection}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label={copy.askPanel.closeLabel}
             className="flex-none rounded-lg px-2.5 py-1 font-sans text-xl leading-none text-ink-faint transition hover:bg-paper-sunken hover:text-ink"
           >
             ×
@@ -127,8 +130,8 @@ export function AskPanel({ open, onClose, turns, countries, isPending, onAsk }: 
             ref={inputRef}
             value={followUp}
             onChange={(event) => setFollowUp(event.target.value)}
-            aria-label="Pregunta de seguimiento"
-            placeholder="Pregunta algo más…"
+            aria-label={copy.askPanel.followUpLabel}
+            placeholder={copy.askPanel.followUpPlaceholder}
             className="min-w-0 flex-1 rounded-xl border border-rule bg-paper-raised px-4 py-2.5 font-sans text-sm text-ink outline-none placeholder:text-ink-faint focus:border-isthmus-light"
           />
           <button
@@ -137,7 +140,7 @@ export function AskPanel({ open, onClose, turns, countries, isPending, onAsk }: 
             className="flex flex-none items-center gap-2 rounded-xl bg-gradient-to-br from-[#05aaa1] to-[#079c83] px-4 py-2.5 font-sans text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40"
           >
             <SendIcon size={16} />
-            Enviar
+            {copy.askPanel.send}
           </button>
         </form>
       </aside>
