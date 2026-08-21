@@ -49,12 +49,16 @@ function PhaseStatus({ phase }: { phase: Exclude<TurnPhase, "done"> }) {
 }
 
 /**
- * Por que el resultado vino vacio. Va arriba de todo y con peso visual: no es
- * una nota al pie, es la respuesta. "No hubo contrataciones" y "no tenemos
- * esos datos" son afirmaciones muy distintas, y confundirlas hace parecer que
- * no pasa nada donde en realidad no estamos mirando.
+ * Una advertencia sobre como leer el resultado.
+ *
+ * Con cero filas es la respuesta entera y va sola: "no hubo contrataciones" y
+ * "no tenemos esos datos" son afirmaciones muy distintas, y confundirlas hace
+ * parecer que no pasa nada donde en realidad no estamos mirando.
+ *
+ * Con filas es una nota sobre la tabla -- que le falta un pais, que mezcla
+ * monedas -- y va pegada a ella, sin desplazar al parrafo.
  */
-function CoverageWarning({ message }: { message: string }) {
+function ResultWarning({ message }: { message: string }) {
   return (
     <div className="rounded-2xl border border-maize/30 bg-maize/10 px-5 py-4">
       <p className="font-sans text-sm leading-relaxed text-[#8a6a15]">{message}</p>
@@ -115,17 +119,26 @@ function AnswerBody({ turn }: { turn: Turn }) {
   // verificador descarto) no debe vestirse como prosa generada.
   const plainNarrative = tone === "zero" || tone === "degraded";
 
-  // Con un aviso de cobertura, ese aviso ES la respuesta: la narrativa de
-  // cero filas repite el mismo texto, asi que mostrar las dos seria decir lo
-  // mismo dos veces.
-  const aviso = turn.warnings[0];
+  const hayTabla = turn.rowCount > 0 && turn.columns.length > 0;
+
+  // Sin filas, el aviso ES la respuesta: la narrativa de cero filas repite el
+  // mismo texto y mostrar las dos seria decir lo mismo dos veces. Con filas
+  // hay algo que contar, asi que el parrafo se queda y el aviso baja a la
+  // tabla -- reemplazarlo dejaria otra vez tabla sin respuesta.
+  const avisoEnLugarDeLaRespuesta = hayTabla ? null : turn.warnings[0];
+
+  // El pie de la tabla ya dice que esta truncada; repetirlo en un recuadro
+  // amarillo solo entrena a la gente a ignorar los recuadros amarillos.
+  const avisosSobreLaTabla = hayTabla
+    ? turn.warnings.filter((w) => w.code !== "TRUNCATED_RESULT")
+    : [];
 
   return (
     <>
       {turn.phase !== "done" ? (
         <PhaseStatus phase={turn.phase} />
-      ) : aviso ? (
-        <CoverageWarning message={aviso.message_es} />
+      ) : avisoEnLugarDeLaRespuesta ? (
+        <ResultWarning message={avisoEnLugarDeLaRespuesta.message_es} />
       ) : (
         turn.narrative && (
           <Narrative
@@ -135,7 +148,11 @@ function AnswerBody({ turn }: { turn: Turn }) {
           />
         )
       )}
-      {turn.rowCount > 0 && turn.columns.length > 0 && (
+      {turn.phase === "done" &&
+        avisosSobreLaTabla.map((aviso) => (
+          <ResultWarning key={aviso.code} message={aviso.message_es} />
+        ))}
+      {hayTabla && (
         <ResultTable
           columns={turn.columns}
           rows={turn.rows}
