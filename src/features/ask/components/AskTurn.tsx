@@ -158,6 +158,7 @@ function AnswerBody({ turn }: { turn: Turn }) {
           rows={turn.rows}
           rowCount={turn.rowCount}
           truncated={turn.truncated}
+          countries={turn.countries}
         />
       )}
     </>

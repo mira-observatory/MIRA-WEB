@@ -133,6 +133,12 @@ export const copy = {
     emptyCell: "—",
     singularRow: "fila",
     pluralRows: "filas",
+    //: Titulo de la tabla. Con varios paises no se nombra ninguno: cual es
+    //: cual lo dice la columna de pais, fila por fila.
+    titleManyCountries: "{n} países",
+    titleNoCountry: "Resultado",
+    copyMarkdown: "Copiar como Markdown",
+    copied: "Copiado",
     truncated: "Resultado truncado -- hay mas filas de las que se muestran aqui",
   },
   sql: {

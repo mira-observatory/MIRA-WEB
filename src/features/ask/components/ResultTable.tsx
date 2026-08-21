@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { formatCount, formatDate, formatMoney } from "../../../lib/format";
 import { copy } from "../../../i18n/copy";
 import { columnLabel } from "../columnLabels";
+import { tableTitle, toMarkdown } from "../tableMarkdown";
 import type { QueryColumn } from "../api";
 
 type Row = Record<string, unknown>;
@@ -10,7 +12,43 @@ type Props = {
   rows: Row[];
   rowCount: number;
   truncated: boolean;
+  //: Los paises que se consultaron, para titular la tabla. Vienen de la
+  //: peticion y no de las filas: si Guatemala se pidio y no devolvio nada,
+  //: el titulo tiene que seguir diciendo que se pregunto por Guatemala.
+  countries: string[];
 };
+
+/**
+ * Copia la tabla en Markdown al portapapeles.
+ *
+ * El boton confirma en su propia etiqueta y vuelve solo a los dos segundos:
+ * copiar no deja rastro visible en la pagina, y sin confirmacion la gente
+ * hace clic dos o tres veces sin saber si funciono.
+ */
+function CopyMarkdownButton({ getMarkdown }: { getMarkdown: () => string }) {
+  const [copiado, setCopiado] = useState(false);
+
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(getMarkdown());
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // Sin permiso de portapapeles (o sin HTTPS) no hay nada que hacer desde
+      // aqui. Mejor no hacer nada que mentir con un "Copiado".
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={copiar}
+      className="rounded-full border border-rule px-2.5 py-1 font-sans text-[11px] font-medium text-ink-soft transition-colors hover:bg-paper hover:text-ink"
+    >
+      {copiado ? copy.table.copied : copy.table.copyMarkdown}
+    </button>
+  );
+}
 
 function cellCountryCode(row: Row): string | undefined {
   const value = row["country_code"];
@@ -83,9 +121,15 @@ export function uniformCurrency(column: QueryColumn, rows: Row[]): string | null
  * tipografia monoespaciada marca lo que viene de la base, la serif marca lo
  * que escribe el modelo). Esta tabla nunca renderiza narrativa.
  */
-export function ResultTable({ columns, rows, rowCount, truncated }: Props) {
+export function ResultTable({ columns, rows, rowCount, truncated, countries }: Props) {
   return (
     <div className="overflow-hidden rounded-2xl border border-rule bg-paper-raised shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule bg-paper px-4 py-2.5">
+        <h4 className="font-display text-sm font-semibold text-ink">{tableTitle(countries)}</h4>
+        <CopyMarkdownButton
+          getMarkdown={() => toMarkdown(columns, rows, countries, rowCount, truncated)}
+        />
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-max border-collapse text-sm">
           <thead>
