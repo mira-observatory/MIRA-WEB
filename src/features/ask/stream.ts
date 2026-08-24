@@ -12,6 +12,8 @@ export type StreamEvent =
   | { type: "error"; outcome: Outcome }
   | { type: "done"; outcome: Outcome };
 
+export const QUERY_STREAM_PATH = "/query/stream";
+
 /**
  * Traduce un frame SSE ("event: x\ndata: {...}") al evento tipado.
  * Devuelve null para lo que no reconoce -- un evento nuevo del backend no
@@ -95,7 +97,7 @@ export async function* streamQuery(input: {
   history: ConversationTurn[];
   signal?: AbortSignal;
 }): AsyncGenerator<StreamEvent> {
-  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/query/stream`, {
+  const response = await fetch(`${import.meta.env.VITE_MIRA_API_BASE_URL}${QUERY_STREAM_PATH}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

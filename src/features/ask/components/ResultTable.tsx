@@ -2,7 +2,12 @@ import { useState } from "react";
 import { formatCount, formatDate, formatMoney } from "../../../lib/format";
 import { copy } from "../../../i18n/copy";
 import { columnLabel } from "../columnLabels";
-import { tableTitle, toMarkdown } from "../tableMarkdown";
+import {
+  GENERIC_FLAG_ASSET,
+  countryFlagAsset,
+  tableTitle,
+  toMarkdown,
+} from "../tableMarkdown";
 import type { QueryColumn } from "../api";
 
 type Row = Record<string, unknown>;
@@ -125,7 +130,21 @@ export function ResultTable({ columns, rows, rowCount, truncated, countries }: P
   return (
     <div className="overflow-hidden rounded-2xl border border-rule bg-paper-raised shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule bg-paper px-4 py-2.5">
-        <h4 className="font-display text-sm font-semibold text-ink">{tableTitle(countries)}</h4>
+        <h4 className="flex items-center gap-2 font-display text-sm font-semibold text-ink">
+          {countries.length === 1 && countries[0] ? (
+            <img
+              className="h-3.5 w-5 rounded-[2px] object-cover"
+              src={countryFlagAsset(countries[0])}
+              alt=""
+              aria-hidden="true"
+              onError={(event) => {
+                if (event.currentTarget.src.endsWith(GENERIC_FLAG_ASSET)) return;
+                event.currentTarget.src = GENERIC_FLAG_ASSET;
+              }}
+            />
+          ) : null}
+          {tableTitle(countries)}
+        </h4>
         <CopyMarkdownButton
           getMarkdown={() => toMarkdown(columns, rows, countries, rowCount, truncated)}
         />

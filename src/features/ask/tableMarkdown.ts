@@ -8,7 +8,20 @@ type Row = Record<string, unknown>;
 /** Los codigos ISO llegan del backend en mayuscula; el catalogo los indexa en minuscula. */
 export function countryLabel(code: string): string {
   const entry = copy.countries.byId[code.toLowerCase() as keyof typeof copy.countries.byId];
-  return entry ? `${entry.flag} ${entry.name}` : code.toUpperCase();
+  return entry ? entry.name : code.toUpperCase();
+}
+
+/**
+ * La bandera del pais, del mismo juego de SVG que usa el selector.
+ *
+ * Va solo en la tabla en pantalla, nunca en el Markdown exportado: una ruta
+ * relativa como /flags/cr.svg no resuelve en ningun lado donde se pegue el
+ * informe, y una imagen rota se ve peor que ninguna imagen.
+ */
+export const GENERIC_FLAG_ASSET = "/flags/generic.svg";
+
+export function countryFlagAsset(code: string): string {
+  return `/flags/${code.toLowerCase()}.svg`;
 }
 
 /**

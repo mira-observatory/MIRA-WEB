@@ -158,6 +158,10 @@ export interface components {
         CoverageCountry: {
             /** Country Code */
             country_code: string;
+            /** Country Name */
+            country_name: string;
+            /** Flag Asset */
+            flag_asset?: string | null;
             /**
              * Status
              * @enum {string}

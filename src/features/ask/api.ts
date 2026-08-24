@@ -8,12 +8,14 @@ export type Outcome = components["schemas"]["Outcome"];
 
 export type ConversationTurn = components["schemas"]["ConversationTurn"];
 
+export const QUERY_PATH = "/query";
+
 export async function fetchQueryResult(input: {
   question: string;
   countries: string[];
   history?: ConversationTurn[];
 }): Promise<QueryResponse> {
-  const { data, error } = await api.POST("/query", {
+  const { data, error } = await api.POST(QUERY_PATH, {
     body: {
       question: input.question,
       countries: input.countries,

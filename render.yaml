@@ -14,7 +14,7 @@ services:
       # efecto hasta que se vuelva a construir. Si el chat responde "hubo un
       # error consultando los datos" recien desplegado, esto es lo primero a
       # revisar.
-      - key: VITE_API_BASE_URL
+      - key: VITE_MIRA_API_BASE_URL
         sync: false
 
     routes:

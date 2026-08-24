@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countryLabel, tableTitle, toMarkdown } from "./tableMarkdown";
+import { countryFlagAsset, countryLabel, tableTitle, toMarkdown } from "./tableMarkdown";
 import { formatCell } from "./components/ResultTable";
 import type { QueryColumn } from "./api";
 
@@ -9,14 +9,21 @@ const COLUMNAS: QueryColumn[] = [
 ];
 
 describe("tableTitle", () => {
-  it("con un pais lo nombra, con bandera", () => {
-    expect(tableTitle(["CR"])).toBe("🇨🇷 Costa Rica");
+  it("con un pais lo nombra", () => {
+    // Sin bandera en el texto: la bandera es un SVG que pinta la tabla al
+    // lado del titulo, no un caracter. En el Markdown exportado no va, porque
+    // una ruta /flags/cr.svg no resuelve donde se pegue el informe.
+    expect(tableTitle(["CR"])).toBe("Costa Rica");
   });
 
   it("acepta el codigo en mayuscula que manda el backend", () => {
     // El backend devuelve 'GT'; el catalogo esta indexado en minuscula. Que
     // esto falle daria un titulo "GT" en vez de "Guatemala".
-    expect(countryLabel("GT")).toBe("🇬🇹 Guatemala");
+    expect(countryLabel("GT")).toBe("Guatemala");
+  });
+
+  it("la bandera apunta al mismo juego de SVG que usa el selector", () => {
+    expect(countryFlagAsset("CR")).toBe("/flags/cr.svg");
   });
 
   it("con varios no nombra ninguno: cual es cual lo dice la columna", () => {
@@ -38,7 +45,7 @@ describe("toMarkdown", () => {
     const md = toMarkdown(COLUMNAS, filas, ["CR"], 2, false);
     const lineas = md.split("\n");
 
-    expect(lineas[0]).toBe("### 🇨🇷 Costa Rica");
+    expect(lineas[0]).toBe("### Costa Rica");
     expect(lineas[3]).toBe("| --- | --- |");
     expect(lineas.filter((l) => l.startsWith("| MIRA-CR-"))).toHaveLength(2);
     expect(md).toContain("_2 filas_");
