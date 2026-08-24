@@ -22,6 +22,7 @@ import { fetchCoverage } from "../features/coverage/api";
 import { copy } from "../i18n/copy";
 import { formatCount } from "../lib/format";
 
+//: Bandera de reserva cuando la API no trae una, o el archivo no carga.
 const GENERIC_FLAG_ASSET = "/flags/generic.svg";
 
 const examples = [
@@ -130,6 +131,10 @@ export function App() {
           flagImage: country.flag_asset ?? GENERIC_FLAG_ASSET,
           status: country.status,
           active: country.status === "ACTIVE",
+          //: El conteo real distingue de un vistazo un pais completo de
+          //: uno recien empezado. Costa Rica y Nicaragua no estan igual
+          //: de cargados y la interfaz no deberia ocultarlo.
+          processCount: country.process_count,
         };
       }),
     [coverage],
@@ -185,10 +190,14 @@ export function App() {
             <div>
               <small>{copy.home.metrics.countries.label}</small>
               <strong className="tabular">
-                {metricValue(`${formatCount(coverageSummary?.active_countries)} activos`)}
+                {metricValue(
+                  `${formatCount(coverageSummary?.active_countries)} ${copy.home.metrics.countries.activeSuffix}`,
+                )}
               </strong>
               <span>
-                {metricValue(`${formatCount(coverageSummary?.planned_countries)} proximamente`)}
+                {metricValue(
+                  `${formatCount(coverageSummary?.planned_countries)} ${copy.home.metrics.countries.soonSuffix}`,
+                )}
               </span>
             </div>
           </div>
@@ -234,7 +243,14 @@ export function App() {
                 {metricValue(formatCount(coverageSummary?.active_sources))}
               </strong>
               <span>
-                {metricValue(`en ${formatCount(coverageSummary?.active_countries)} paises`)}
+                {metricValue(
+                  coverageSummary?.active_countries === 1
+                    ? copy.home.metrics.sources.captionOne
+                    : copy.home.metrics.sources.captionMany.replace(
+                        "{n}",
+                        formatCount(coverageSummary?.active_countries),
+                      ),
+                )}
               </span>
             </div>
           </div>
@@ -264,7 +280,19 @@ export function App() {
                 />
                 <span>
                   {country.name}
-                  {!country.active && <small>{copy.countries.soon}</small>}
+                  {/* El conteo real distingue de un vistazo un pais completo de
+                      uno recien empezado -- Costa Rica y Nicaragua no estan
+                      igual de cargados, y la interfaz no deberia ocultarlo. */}
+                  {country.active ? (
+                    <small>
+                      {copy.countries.processCount.replace(
+                        "{n}",
+                        formatCount(country.processCount),
+                      )}
+                    </small>
+                  ) : (
+                    <small>{copy.countries.soon}</small>
+                  )}
                 </span>
               </button>
             ))}

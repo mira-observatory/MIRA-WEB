@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Coverage
+         * @description Return exact, precomputed public coverage without invoking a model.
+         */
+        get: operations["get_coverage_coverage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -134,6 +154,36 @@ export interface components {
             /** Sql */
             sql: string;
         };
+        /** CoverageCountry */
+        CoverageCountry: {
+            /** Country Code */
+            country_code: string;
+            /** Country Name */
+            country_name: string;
+            /** Flag Asset */
+            flag_asset?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ACTIVE" | "PLANNED" | "INACTIVE";
+            /** Active Sources */
+            active_sources: number;
+            /** Process Count */
+            process_count: number;
+            /** Buyer Count */
+            buyer_count: number;
+            /** Supplier Count */
+            supplier_count: number;
+            /** Coverage From */
+            coverage_from?: string | null;
+            /** Coverage To */
+            coverage_to?: string | null;
+            /** Last Successful Load At */
+            last_successful_load_at?: string | null;
+            /** Sources */
+            sources?: components["schemas"]["CoverageSource"][];
+        };
         /**
          * CoverageNote
          * @description Que respalda esta respuesta en concreto.
@@ -154,6 +204,63 @@ export interface components {
             rows_with_amount?: number | null;
             /** Data Version */
             data_version?: string | null;
+        };
+        /** CoverageResponse */
+        CoverageResponse: {
+            summary: components["schemas"]["CoverageSummary"];
+            /** Countries */
+            countries?: components["schemas"]["CoverageCountry"][];
+        };
+        /** CoverageSource */
+        CoverageSource: {
+            /** Source Key */
+            source_key: string;
+            /** Source System */
+            source_system: string;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ACTIVE" | "PLANNED" | "INACTIVE";
+            /** Process Count */
+            process_count: number;
+            /** Buyer Count */
+            buyer_count: number;
+            /** Supplier Count */
+            supplier_count: number;
+            /** Coverage From */
+            coverage_from?: string | null;
+            /** Coverage To */
+            coverage_to?: string | null;
+            /** Complete Process Count */
+            complete_process_count: number;
+            /** Partial Process Count */
+            partial_process_count: number;
+            /** Process Without Date Count */
+            process_without_date_count: number;
+            /** Last Successful Load At */
+            last_successful_load_at?: string | null;
+            /** Refreshed At */
+            refreshed_at?: string | null;
+        };
+        /** CoverageSummary */
+        CoverageSummary: {
+            /** Active Countries */
+            active_countries: number;
+            /** Planned Countries */
+            planned_countries: number;
+            /** Active Sources */
+            active_sources: number;
+            /** Process Count */
+            process_count: number;
+            /** Coverage From */
+            coverage_from?: string | null;
+            /** Coverage To */
+            coverage_to?: string | null;
+            /** Last Successful Load At */
+            last_successful_load_at?: string | null;
         };
         /**
          * EntityCandidate
@@ -369,6 +476,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_coverage_coverage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverageResponse"];
+                };
+            };
+        };
+    };
     healthz_healthz_get: {
         parameters: {
             query?: never;

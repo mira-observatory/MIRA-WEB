@@ -6,13 +6,16 @@ import { copy } from "../../i18n/copy";
 import { AskTurn } from "./components/AskTurn";
 import type { Turn } from "./useAskConversation";
 
+//: `flag` ya no es un emoji para mostrar -- desde que el selector usa SVG,
+//: es solo el nombre del archivo ("GT"). Este subtitulo es texto plano, sin
+//: espacio para un <img> por pais, asi que va solo el nombre.
 const COUNTRY_LABEL: Record<string, string> = {
-  GT: `${copy.countries.byId.gt.flag} ${copy.countries.byId.gt.name}`,
-  HN: `${copy.countries.byId.hn.flag} ${copy.countries.byId.hn.name}`,
-  CR: `${copy.countries.byId.cr.flag} ${copy.countries.byId.cr.name}`,
-  SV: `${copy.countries.byId.sv.flag} ${copy.countries.byId.sv.name}`,
-  NI: `${copy.countries.byId.ni.flag} ${copy.countries.byId.ni.name}`,
-  PA: `${copy.countries.byId.pa.flag} ${copy.countries.byId.pa.name}`,
+  GT: copy.countries.byId.gt.name,
+  HN: copy.countries.byId.hn.name,
+  CR: copy.countries.byId.cr.name,
+  SV: copy.countries.byId.sv.name,
+  NI: copy.countries.byId.ni.name,
+  PA: copy.countries.byId.pa.name,
 };
 
 type Props = {

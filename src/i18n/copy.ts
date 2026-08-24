@@ -17,34 +17,51 @@ export const copy = {
       cr: { name: "Costa Rica", flag: "CR" },
       sv: { name: "El Salvador", flag: "SV" },
       ni: { name: "Nicaragua", flag: "NI" },
-      pa: { name: "Panama", flag: "PA" },
+      pa: { name: "Panamá", flag: "PA" },
     },
-    emptySelection: "Sin paises seleccionados",
-    soon: "Proximamente",
-    all: "Todos los paises",
-    selectorTitle: "Selecciona uno o mas paises",
+    emptySelection: "Sin países seleccionados",
+    soon: "Próximamente",
+    //: Conteo real del pais, para que se vea de un vistazo cual esta completo
+    //: y cual recien empieza.
+    processCount: "{n} procesos",
+    all: "Todos los países",
+    selectorTitle: "Selecciona uno o más países",
   },
   home: {
     coverageAriaLabel: "Resumen de cobertura",
+    //: Estados de la portada mientras /coverage viaja o no responde.
     loadingCoverage: "Cargando cobertura",
     unavailableCoverage: "Cobertura no disponible",
+    // Los valores ya no viven aqui: salen de GET /coverage, que los calcula el
+    // ETL. Estuvieron escritos a mano ("1,248,736 registros", "12 fuentes",
+    // "Ene 2021 – Ago 2026") y ninguno era cierto -- justo lo que un
+    // observatorio de transparencia no puede permitirse en su portada.
     metrics: {
+      //: Mientras la cobertura viaja. Nunca un numero: un placeholder numerico
+      //: es indistinguible de un dato real.
+      pending: "—",
+      unavailable: "sin dato",
       countries: {
-        label: "Paises disponibles",
+        label: "Países disponibles",
+        activeSuffix: "con datos",
+        soonSuffix: "próximamente",
       },
       coverage: {
         label: "Cobertura disponible",
-        caption: "por pais",
+        caption: "según los datos cargados",
       },
       updatedAt: {
-        label: "Ultima actualizacion",
+        label: "Última actualización",
+        caption: "última corrida del ETL",
       },
       records: {
-        label: "Registros disponibles",
-        caption: "registros normalizados",
+        label: "Procesos cargados",
+        caption: "en la base, no una estimación",
       },
       sources: {
         label: "Fuentes activas",
+        captionOne: "en 1 país",
+        captionMany: "en {n} países",
       },
     },
     ask: {
@@ -54,17 +71,17 @@ export const copy = {
       placeholder:
         "Ejemplo: Que empresas recibieron mas contratos de medicamentos en los paises seleccionados entre 2024 y 2025?",
       submit: "Consultar",
-      trust: "MIRA usa informacion publica oficial y siempre muestra la fuente de cada resultado.",
+      trust: "MIRA usa información pública oficial y siempre muestra la fuente de cada resultado.",
       examplesButton: "Ver ejemplos",
       examplesTitle: "Ejemplos de preguntas",
       missingQuestion: "Escribe una pregunta para comenzar.",
       missingCountry: "Selecciona al menos un pais.",
     },
     examples: {
-      mostContractsHonduras: "Que empresas recibieron mas contratos en Honduras en 2025?",
-      medicinePurchases: "Muestrame compras de medicamentos en los paises seleccionados.",
-      computerEquipmentCostaRica: "Cuanto se contrato en equipo de computo en Costa Rica en 2024?",
-      directAwardInstitutions: "Que instituciones hicieron mas compras por adjudicacion directa?",
+      mostContractsHonduras: "¿Qué empresas recibieron más contratos en Honduras en 2025?",
+      medicinePurchases: "Muéstrame compras de medicamentos en los países seleccionados.",
+      computerEquipmentCostaRica: "¿Cuánto se contrató en equipo de cómputo en Costa Rica en 2024?",
+      directAwardInstitutions: "¿Qué instituciones hicieron más compras por adjudicación directa?",
     },
     footer: {
       product: "Monitoreo Inteligente Regional de Adquisiciones",
@@ -119,6 +136,12 @@ export const copy = {
     emptyCell: "—",
     singularRow: "fila",
     pluralRows: "filas",
+    //: Titulo de la tabla. Con varios paises no se nombra ninguno: cual es
+    //: cual lo dice la columna de pais, fila por fila.
+    titleManyCountries: "{n} países",
+    titleNoCountry: "Resultado",
+    copyMarkdown: "Copiar como Markdown",
+    copied: "Copiado",
     truncated: "Resultado truncado -- hay mas filas de las que se muestran aqui",
   },
   sql: {

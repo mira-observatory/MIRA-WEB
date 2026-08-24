@@ -1,62 +1,31 @@
-import { copy } from "../../i18n/copy";
+import { api } from "../../api/client";
+import type { components } from "../../api/generated/schema";
 
-export type CoverageStatus = "ACTIVE" | "PLANNED" | "INACTIVE";
+export type CoverageResponse = components["schemas"]["CoverageResponse"];
+export type CoverageCountry = components["schemas"]["CoverageCountry"];
+export type CoverageSource = components["schemas"]["CoverageSource"];
+export type CoverageStatus = CoverageCountry["status"];
 
-export type CoverageSource = {
-  source_key: string;
-  source_system: string;
-  display_name: string;
-  status: CoverageStatus;
-  process_count: number;
-  buyer_count: number;
-  supplier_count: number;
-  coverage_from: string | null;
-  coverage_to: string | null;
-  complete_process_count: number;
-  partial_process_count: number;
-  process_without_date_count: number;
-  last_successful_load_at: string | null;
-  refreshed_at: string | null;
-};
-
-export type CoverageCountry = {
-  country_code: string;
-  country_name: string;
-  flag_asset: string | null;
-  status: CoverageStatus;
-  active_sources: number;
-  process_count: number;
-  buyer_count: number;
-  supplier_count: number;
-  coverage_from: string | null;
-  coverage_to: string | null;
-  last_successful_load_at: string | null;
-  sources: CoverageSource[];
-};
-
-export type CoverageSummary = {
-  active_countries: number;
-  planned_countries: number;
-  active_sources: number;
-  process_count: number;
-  coverage_from: string | null;
-  coverage_to: string | null;
-  last_successful_load_at: string | null;
-};
-
-export type CoverageResponse = {
-  summary: CoverageSummary;
-  countries: CoverageCountry[];
-};
-
+/**
+ * La ruta, exportada aparte para que routing.test.ts pueda afirmar que no
+ * volvio a colarse el prefijo /v1 que ya rompio el front una vez.
+ */
 export const COVERAGE_PATH = "/coverage";
 
+/**
+ * GET /coverage: agregados exactos, calculados por el ETL y leidos con SQL
+ * fijo. No pasa por el modelo ni consume cuota, asi que la portada puede
+ * mostrarlos sin gastar nada.
+ *
+ * Los tipos salen del OpenAPI (`npm run api:types`) y no escritos a mano. La
+ * version a mano ya se habia quedado sin country_name ni flag_asset despues
+ * de que la API los agregara, y de eso nadie se entera hasta que algo sale
+ * vacio en pantalla.
+ */
 export async function fetchCoverage(): Promise<CoverageResponse> {
-  const response = await fetch(`${import.meta.env.VITE_MIRA_API_BASE_URL}${COVERAGE_PATH}`, {
-    credentials: "include",
-  });
-  if (!response.ok) {
-    throw new Error(`${copy.errors.serviceResponded} ${response.status}`);
+  const { data, error } = await api.GET(COVERAGE_PATH, {});
+  if (error) {
+    throw new Error("No se pudo leer la cobertura");
   }
-  return response.json() as Promise<CoverageResponse>;
+  return data;
 }

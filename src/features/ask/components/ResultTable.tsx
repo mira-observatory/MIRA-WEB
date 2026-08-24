@@ -1,6 +1,13 @@
+import { useState } from "react";
 import { formatCount, formatDate, formatMoney } from "../../../lib/format";
 import { copy } from "../../../i18n/copy";
 import { columnLabel } from "../columnLabels";
+import {
+  GENERIC_FLAG_ASSET,
+  countryFlagAsset,
+  tableTitle,
+  toMarkdown,
+} from "../tableMarkdown";
 import type { QueryColumn } from "../api";
 
 type Row = Record<string, unknown>;
@@ -10,7 +17,43 @@ type Props = {
   rows: Row[];
   rowCount: number;
   truncated: boolean;
+  //: Los paises que se consultaron, para titular la tabla. Vienen de la
+  //: peticion y no de las filas: si Guatemala se pidio y no devolvio nada,
+  //: el titulo tiene que seguir diciendo que se pregunto por Guatemala.
+  countries: string[];
 };
+
+/**
+ * Copia la tabla en Markdown al portapapeles.
+ *
+ * El boton confirma en su propia etiqueta y vuelve solo a los dos segundos:
+ * copiar no deja rastro visible en la pagina, y sin confirmacion la gente
+ * hace clic dos o tres veces sin saber si funciono.
+ */
+function CopyMarkdownButton({ getMarkdown }: { getMarkdown: () => string }) {
+  const [copiado, setCopiado] = useState(false);
+
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(getMarkdown());
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // Sin permiso de portapapeles (o sin HTTPS) no hay nada que hacer desde
+      // aqui. Mejor no hacer nada que mentir con un "Copiado".
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={copiar}
+      className="rounded-full border border-rule px-2.5 py-1 font-sans text-[11px] font-medium text-ink-soft transition-colors hover:bg-paper hover:text-ink"
+    >
+      {copiado ? copy.table.copied : copy.table.copyMarkdown}
+    </button>
+  );
+}
 
 function cellCountryCode(row: Row): string | undefined {
   const value = row["country_code"];
@@ -83,9 +126,29 @@ export function uniformCurrency(column: QueryColumn, rows: Row[]): string | null
  * tipografia monoespaciada marca lo que viene de la base, la serif marca lo
  * que escribe el modelo). Esta tabla nunca renderiza narrativa.
  */
-export function ResultTable({ columns, rows, rowCount, truncated }: Props) {
+export function ResultTable({ columns, rows, rowCount, truncated, countries }: Props) {
   return (
     <div className="overflow-hidden rounded-2xl border border-rule bg-paper-raised shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-rule bg-paper px-4 py-2.5">
+        <h4 className="flex items-center gap-2 font-display text-sm font-semibold text-ink">
+          {countries.length === 1 && countries[0] ? (
+            <img
+              className="h-3.5 w-5 rounded-[2px] object-cover"
+              src={countryFlagAsset(countries[0])}
+              alt=""
+              aria-hidden="true"
+              onError={(event) => {
+                if (event.currentTarget.src.endsWith(GENERIC_FLAG_ASSET)) return;
+                event.currentTarget.src = GENERIC_FLAG_ASSET;
+              }}
+            />
+          ) : null}
+          {tableTitle(countries)}
+        </h4>
+        <CopyMarkdownButton
+          getMarkdown={() => toMarkdown(columns, rows, countries, rowCount, truncated)}
+        />
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-max border-collapse text-sm">
           <thead>
@@ -132,8 +195,7 @@ export function ResultTable({ columns, rows, rowCount, truncated }: Props) {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule px-4 py-2.5 text-xs text-ink-soft">
         <span className="font-mono">
-          {formatCount(rowCount)}{" "}
-          {rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows}
+          {formatCount(rowCount)} {rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows}
         </span>
         {truncated && (
           <span className="rounded-full bg-maize/15 px-2.5 py-1 font-sans font-medium text-[#8a6a15]">

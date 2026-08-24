@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import type { ConversationTurn, Outcome, QueryColumn } from "./api";
 import { classifyOutcome } from "./outcome";
-import { streamQuery, type StreamEvent } from "./stream";
+import { streamQuery, type QueryWarning, type StreamEvent } from "./stream";
 
 //: El backend acepta 3 turnos como maximo (QueryRequest.history).
 const MAX_HISTORY = 3;
@@ -28,6 +28,10 @@ export type Turn = {
   narrative: string | null;
   narrativeVerified: boolean;
   outcome: Outcome | null;
+  /** Por que el resultado vino vacio: si es un cero real o si esos datos
+   * todavia no estan cargados. Un cero sin esta distincion hace parecer que
+   * no pasa nada donde en realidad no estamos mirando. */
+  warnings: QueryWarning[];
   /** La conexion fallo (red, servicio caido). Distinto de un outcome
    * FAILED_*, que es el servicio respondiendo que algo salio mal adentro. */
   failed: boolean;
@@ -47,6 +51,7 @@ function emptyTurn(id: string, question: string, countries: string[]): Turn {
     narrative: null,
     narrativeVerified: false,
     outcome: null,
+    warnings: [],
     failed: false,
   };
 }
@@ -65,6 +70,8 @@ export function applyEvent(turn: Turn, event: StreamEvent): Turn {
       return { ...turn, rowCount: event.rowCount, truncated: event.truncated };
     case "rows":
       return { ...turn, columns: event.columns, rows: event.rows, phase: "writing" };
+    case "warnings":
+      return { ...turn, warnings: event.warnings };
     case "narrative":
       return { ...turn, narrative: event.text, narrativeVerified: event.verified };
     case "error":
