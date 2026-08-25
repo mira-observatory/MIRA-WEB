@@ -78,7 +78,7 @@ export const copy = {
       missingCountry: "Selecciona al menos un pais.",
     },
     examples: {
-      mostContractsHonduras: "¿Qué empresas recibieron más contratos en Honduras en 2025?",
+      mostContractsHonduras: "¿Qué empresas recibieron más contratos en Honduras en 2023?",
       medicinePurchases: "Muéstrame compras de medicamentos en los países seleccionados.",
       computerEquipmentCostaRica: "¿Cuánto se contrató en equipo de cómputo en Costa Rica en 2024?",
       directAwardInstitutions: "¿Qué instituciones hicieron más compras por adjudicación directa?",
