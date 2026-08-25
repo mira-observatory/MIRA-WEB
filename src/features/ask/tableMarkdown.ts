@@ -84,3 +84,53 @@ export function toMarkdown(
   ];
   return lineas.join("\n");
 }
+
+/**
+ * Genera la tabla en formato TSV (Tab-Separated Values).
+ * Es el formato nativo estándar que Microsoft Excel, Google Sheets,
+ * LibreOffice Calc y Apple Numbers pegan en celdas perfectas sin configuración.
+ */
+export function toTsv(
+  columns: QueryColumn[],
+  rows: Row[],
+): string {
+  const encabezado = columns.map((c) =>
+    headerLabel(c, rows).replace(/[\t\r\n]+/g, " "),
+  );
+  const cuerpo = rows.map((row) =>
+    columns.map((column) => {
+      const pais = typeof row["country_code"] === "string" ? row["country_code"] : undefined;
+      const valor = formatCell(row[column.name], column, pais, cellCurrencyCode(row, column));
+      return valor.replace(/[\t\r\n]+/g, " ");
+    }),
+  );
+
+  return [encabezado.join("\t"), ...cuerpo.map((fila) => fila.join("\t"))].join("\r\n");
+}
+
+/**
+ * Genera un fragmento HTML <table> estándar para que al pegar en Excel, Word,
+ * Google Docs o aplicaciones ricas, se inserte una tabla con formato.
+ */
+export function toHtmlTable(
+  columns: QueryColumn[],
+  rows: Row[],
+): string {
+  const ths = columns
+    .map((c) => `<th>${headerLabel(c, rows)}</th>`)
+    .join("");
+  const trs = rows
+    .map((row) => {
+      const tds = columns
+        .map((column) => {
+          const pais = typeof row["country_code"] === "string" ? row["country_code"] : undefined;
+          const valor = formatCell(row[column.name], column, pais, cellCurrencyCode(row, column));
+          return `<td>${valor}</td>`;
+        })
+        .join("");
+      return `<tr>${tds}</tr>`;
+    })
+    .join("");
+
+  return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+}

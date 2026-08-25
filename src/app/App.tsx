@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+﻿import { useQuery } from "@tanstack/react-query";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   BuildingIcon,
@@ -22,7 +22,7 @@ import { fetchCoverage } from "../features/coverage/api";
 import { copy } from "../i18n/copy";
 import { formatCount } from "../lib/format";
 
-//: Bandera de reserva cuando la API no trae una, o el archivo no carga.
+// Bandera de reserva cuando la API no trae una, o el archivo no carga.
 const GENERIC_FLAG_ASSET = "/flags/generic.svg";
 
 const examples = [
@@ -108,11 +108,13 @@ function Brand() {
 }
 
 export function App() {
-  const [selected, setSelected] = useState<string[]>([]),
-    [question, setQuestion] = useState(""),
-    [notice, setNotice] = useState(""),
-    [panelOpen, setPanelOpen] = useState(false),
-    [coverageInitialized, setCoverageInitialized] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [question, setQuestion] = useState("");
+  const [notice, setNotice] = useState("");
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [coverageOpen, setCoverageOpen] = useState(false);
+  const [coverageInitialized, setCoverageInitialized] = useState(false);
+
   const conversation = useAskConversation();
   const coverageQuery = useQuery({
     queryKey: ["coverage"],
@@ -120,6 +122,7 @@ export function App() {
   });
   const coverage = coverageQuery.data;
   const coverageSummary = coverage?.summary;
+
   const countryOptions = useMemo(
     () =>
       (coverage?.countries ?? []).map((country) => {
@@ -131,39 +134,43 @@ export function App() {
           flagImage: country.flag_asset ?? GENERIC_FLAG_ASSET,
           status: country.status,
           active: country.status === "ACTIVE",
-          //: El conteo real distingue de un vistazo un pais completo de
-          //: uno recien empezado. Costa Rica y Nicaragua no estan igual
-          //: de cargados y la interfaz no deberia ocultarlo.
           processCount: country.process_count,
         };
       }),
     [coverage],
   );
+
   const activeCountryIds = useMemo(
     () => countryOptions.filter((country) => country.active).map((country) => country.id),
     [countryOptions],
   );
+
   useEffect(() => {
     if (!coverage || coverageInitialized) return;
     setSelected(activeCountryIds);
     setCoverageInitialized(true);
   }, [activeCountryIds, coverage, coverageInitialized]);
+
   const allActiveSelected = useMemo(
     () => activeCountryIds.length > 0 && activeCountryIds.every((id) => selected.includes(id)),
     [activeCountryIds, selected],
   );
-  // La API espera codigos ISO en mayuscula; los ids de los botones son minusculas.
+
   const selectedCodes = useMemo(() => selected.map((id) => id.toUpperCase()), [selected]);
+
   const toggle = (id: string) =>
     setSelected((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
     );
+
   const ask = (text: string) => conversation.ask(text, selectedCodes);
+
   const metricValue = (value: string) => {
     if (coverageQuery.isLoading) return copy.home.loadingCoverage;
     if (coverageQuery.isError) return copy.home.unavailableCoverage;
     return value;
   };
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!question.trim()) {
@@ -183,78 +190,10 @@ export function App() {
   return (
     <div className="site-shell">
       <main className="page">
+        {/* 1. Header / Brand Original */}
         <Brand />
-        <section className="metrics card" aria-label={copy.home.coverageAriaLabel}>
-          <div className="metric">
-            <GlobeIcon className="icon" size={38} />
-            <div>
-              <small>{copy.home.metrics.countries.label}</small>
-              <strong className="tabular">
-                {metricValue(
-                  `${formatCount(coverageSummary?.active_countries)} ${copy.home.metrics.countries.activeSuffix}`,
-                )}
-              </strong>
-              <span>
-                {metricValue(
-                  `${formatCount(coverageSummary?.planned_countries)} ${copy.home.metrics.countries.soonSuffix}`,
-                )}
-              </span>
-            </div>
-          </div>
-          <div className="metric">
-            <CalendarIcon className="icon" size={38} />
-            <div>
-              <small>{copy.home.metrics.coverage.label}</small>
-              <strong className="tabular">
-                {metricValue(
-                  formatCoverageRange(coverageSummary?.coverage_from, coverageSummary?.coverage_to),
-                )}
-              </strong>
-              <span>{copy.home.metrics.coverage.caption}</span>
-            </div>
-          </div>
-          <div className="metric">
-            <RefreshIcon className="icon" size={38} />
-            <div>
-              <small>{copy.home.metrics.updatedAt.label}</small>
-              <strong className="tabular">
-                {metricValue(formatCoverageDate(coverageSummary?.last_successful_load_at))}
-              </strong>
-              <span className="tabular">
-                {metricValue(formatCoverageTime(coverageSummary?.last_successful_load_at))}
-              </span>
-            </div>
-          </div>
-          <div className="metric">
-            <DatabaseIcon className="icon" size={38} />
-            <div>
-              <small>{copy.home.metrics.records.label}</small>
-              <strong className="tabular">
-                {metricValue(formatCount(coverageSummary?.process_count))}
-              </strong>
-              <span>{copy.home.metrics.records.caption}</span>
-            </div>
-          </div>
-          <div className="metric">
-            <DocumentIcon className="icon" size={38} />
-            <div>
-              <small>{copy.home.metrics.sources.label}</small>
-              <strong className="tabular">
-                {metricValue(formatCount(coverageSummary?.active_sources))}
-              </strong>
-              <span>
-                {metricValue(
-                  coverageSummary?.active_countries === 1
-                    ? copy.home.metrics.sources.captionOne
-                    : copy.home.metrics.sources.captionMany.replace(
-                        "{n}",
-                        formatCount(coverageSummary?.active_countries),
-                      ),
-                )}
-              </span>
-            </div>
-          </div>
-        </section>
+
+        {/* 2. Selector de Países Original (Enfoque en la Consulta Primero) */}
         <section className="countries card">
           <h2>{copy.countries.selectorTitle}</h2>
           <div className="country-grid">
@@ -280,9 +219,6 @@ export function App() {
                 />
                 <span>
                   {country.name}
-                  {/* El conteo real distingue de un vistazo un pais completo de
-                      uno recien empezado -- Costa Rica y Nicaragua no estan
-                      igual de cargados, y la interfaz no deberia ocultarlo. */}
                   {country.active ? (
                     <small>
                       {copy.countries.processCount.replace(
@@ -309,6 +245,8 @@ export function App() {
             </button>
           </div>
         </section>
+
+        {/* 3. Área de Pregunta y Búsqueda Original */}
         <section className="ask card">
           <div className="ask-heading">
             <h2>{copy.home.ask.title}</h2>
@@ -335,14 +273,6 @@ export function App() {
               <ShieldIcon className="icon" size={20} />
               {copy.home.ask.trust}
             </p>
-            <button
-              onClick={() =>
-                document.getElementById("examples")?.scrollIntoView({ behavior: "smooth" })
-              }
-            >
-              <SparkIcon className="icon" />
-              {copy.home.ask.examplesButton}
-            </button>
           </div>
           {notice && (
             <p className="notice" role="status">
@@ -357,6 +287,10 @@ export function App() {
                 onClick={() => {
                   setQuestion(example.text);
                   setNotice("");
+                  if (selected.length > 0) {
+                    setPanelOpen(true);
+                    ask(example.text);
+                  }
                 }}
                 className="example"
               >
@@ -368,16 +302,126 @@ export function App() {
             ))}
           </div>
         </section>
+
+        {/* 4. Métricas / Cobertura Abatible (Collapsible) */}
+        <section className="metrics-card card" aria-label={copy.home.coverageAriaLabel}>
+          <button
+            type="button"
+            className={`metrics-toggle ${coverageOpen ? "open" : ""}`}
+            onClick={() => setCoverageOpen(!coverageOpen)}
+          >
+            <span>{copy.home.coverageAriaLabel}</span>
+            <div className="toggle-meta">
+              <span className="tabular">
+                {metricValue(`${formatCount(coverageSummary?.process_count)} procesos cargados`)}
+              </span>
+              <span className="toggle-chevron" aria-hidden="true">
+                ▼
+              </span>
+            </div>
+          </button>
+
+          {coverageOpen && (
+            <div className="metrics collapsible">
+              <div className="metric">
+                <GlobeIcon className="icon" size={38} />
+                <div>
+                  <small>{copy.home.metrics.countries.label}</small>
+                  <strong className="tabular">
+                    {metricValue(
+                      `${formatCount(coverageSummary?.active_countries)} ${copy.home.metrics.countries.activeSuffix}`,
+                    )}
+                  </strong>
+                  <span>
+                    {metricValue(
+                      `${formatCount(coverageSummary?.planned_countries)} ${copy.home.metrics.countries.soonSuffix}`,
+                    )}
+                  </span>
+                </div>
+              </div>
+              <div className="metric">
+                <CalendarIcon className="icon" size={38} />
+                <div>
+                  <small>{copy.home.metrics.coverage.label}</small>
+                  <strong className="tabular">
+                    {metricValue(
+                      formatCoverageRange(
+                        coverageSummary?.coverage_from,
+                        coverageSummary?.coverage_to,
+                      ),
+                    )}
+                  </strong>
+                  <span>{copy.home.metrics.coverage.caption}</span>
+                </div>
+              </div>
+              <div className="metric">
+                <RefreshIcon className="icon" size={38} />
+                <div>
+                  <small>{copy.home.metrics.updatedAt.label}</small>
+                  <strong className="tabular">
+                    {metricValue(formatCoverageDate(coverageSummary?.last_successful_load_at))}
+                  </strong>
+                  <span className="tabular">
+                    {metricValue(formatCoverageTime(coverageSummary?.last_successful_load_at))}
+                  </span>
+                </div>
+              </div>
+              <div className="metric">
+                <DatabaseIcon className="icon" size={38} />
+                <div>
+                  <small>{copy.home.metrics.records.label}</small>
+                  <strong className="tabular">
+                    {metricValue(formatCount(coverageSummary?.process_count))}
+                  </strong>
+                  <span>{copy.home.metrics.records.caption}</span>
+                </div>
+              </div>
+              <div className="metric">
+                <DocumentIcon className="icon" size={38} />
+                <div>
+                  <small>{copy.home.metrics.sources.label}</small>
+                  <strong className="tabular">
+                    {metricValue(formatCount(coverageSummary?.active_sources))}
+                  </strong>
+                  <span>
+                    {metricValue(
+                      coverageSummary?.active_countries === 1
+                        ? copy.home.metrics.sources.captionOne
+                        : copy.home.metrics.sources.captionMany.replace(
+                            "{n}",
+                            formatCount(coverageSummary?.active_countries),
+                          ),
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
       </main>
+
+      {/* 5. Footer Profesional */}
       <footer>
         <span>
-          <strong>{copy.brand.name}</strong> - {copy.home.footer.product}
+          <strong>{copy.brand.name}</strong> — {copy.home.footer.product}
         </span>
         <span>{copy.home.footer.initiative}</span>
-        <span>
-          {copy.home.footer.version} <b>-</b> {copy.home.footer.date}
-        </span>
       </footer>
+
+      {/* Botón flotante para reabrir el asistente */}
+      {conversation.turns.length > 0 && !panelOpen && (
+        <button
+          type="button"
+          onClick={() => setPanelOpen(true)}
+          className="reopen-chat-btn"
+          aria-label="Abrir asistente de consultas"
+        >
+          <SparkIcon size={18} />
+          <span>Ver consulta ({conversation.turns.length})</span>
+        </button>
+      )}
+
+      {/* Panel Conversacional */}
       <AskPanel
         open={panelOpen}
         onClose={() => setPanelOpen(false)}
