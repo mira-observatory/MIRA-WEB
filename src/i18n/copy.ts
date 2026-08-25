@@ -85,9 +85,8 @@ export const copy = {
     },
     footer: {
       product: "Monitoreo Inteligente Regional de Adquisiciones",
-      initiative: "Una iniciativa de Centro Carter y Universidad Rafael Landivar",
-      version: "Version del prototipo 0.1",
-      date: "Agosto 2026",
+      initiative: "Una iniciativa de Centro Carter y Universidad Rafael Landívar",
+      mission: "Datos públicos abiertos para la transparencia en Centroamérica",
     },
   },
   askPanel: {

@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { countryFlagAsset, countryLabel, tableTitle, toMarkdown } from "./tableMarkdown";
-import { formatCell } from "./components/ResultTable";
 import type { QueryColumn } from "./api";
+import { formatCell } from "./components/ResultTable";
+import {
+  countryFlagAsset,
+  countryLabel,
+  tableTitle,
+  toHtmlTable,
+  toMarkdown,
+  toTsv,
+} from "./tableMarkdown";
 
 const COLUMNAS: QueryColumn[] = [
   { name: "process_id", kind: "text", currency_code: null },
@@ -88,3 +95,34 @@ describe("toMarkdown", () => {
     expect(md).not.toContain("| 1500 |");
   });
 });
+
+describe("toTsv", () => {
+  const filas = [
+    { process_id: "MIRA-CR-1", awarded_amount: "1500", country_code: "CR" },
+    { process_id: "MIRA-CR-2", awarded_amount: "2500", country_code: "CR" },
+  ];
+
+  it("genera filas separadas por tabulaciones para pegar en Excel", () => {
+    const tsv = toTsv(COLUMNAS, filas);
+    const lineas = tsv.split("\r\n");
+
+    expect(lineas).toHaveLength(3);
+    expect(lineas[0]?.split("\t")).toHaveLength(COLUMNAS.length);
+    expect(lineas[1]?.split("\t")).toHaveLength(COLUMNAS.length);
+    expect(lineas[1]).toContain("MIRA-CR-1");
+  });
+});
+
+describe("toHtmlTable", () => {
+  const filas = [
+    { process_id: "MIRA-CR-1", awarded_amount: "1500", country_code: "CR" },
+  ];
+
+  it("genera un fragmento table HTML con thead y tbody", () => {
+    const html = toHtmlTable(COLUMNAS, filas);
+    expect(html).toContain("<table><thead><tr><th>");
+    expect(html).toContain("<tbody><tr><td>");
+    expect(html).toContain("MIRA-CR-1");
+  });
+});
+

@@ -129,3 +129,29 @@ export const RefreshIcon = ({ size = 24, ...props }: IconProps) => (
     <path d="M19.08 15H14a1 1 0 0 0 0 2h2.89A7 7 0 0 1 5 12a1 1 0 0 0-2 0 9 9 0 0 0 15 6.68V21a1 1 0 0 0 2 0v-5a1 1 0 0 0-.92-1Z" />
   </svg>
 );
+
+export const ChevronDownIcon = (props: IconProps) => (
+  <LineIcon {...props} strokeWidth={2}>
+    <path d="m6 9 6 6 6-6" />
+  </LineIcon>
+);
+
+export const InfoIcon = (props: IconProps) => (
+  <LineIcon {...props} strokeWidth={2}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 16v-4M12 8h.01" />
+  </LineIcon>
+);
+
+export const CopyIcon = (props: IconProps) => (
+  <LineIcon {...props} strokeWidth={2}>
+    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+  </LineIcon>
+);
+
+export const CheckIcon = (props: IconProps) => (
+  <LineIcon {...props} strokeWidth={2.5}>
+    <path d="M20 6 9 17l-5-5" />
+  </LineIcon>
+);
