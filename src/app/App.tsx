@@ -1,4 +1,4 @@
-﻿import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   BuildingIcon,
@@ -113,6 +113,7 @@ export function App() {
   const [notice, setNotice] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
   const [coverageOpen, setCoverageOpen] = useState(false);
+  const [countriesOpen, setCountriesOpen] = useState(true);
   const [coverageInitialized, setCoverageInitialized] = useState(false);
 
   const conversation = useAskConversation();
@@ -193,56 +194,84 @@ export function App() {
         {/* 1. Header / Brand Original */}
         <Brand />
 
-        {/* 2. Selector de Países Original (Enfoque en la Consulta Primero) */}
-        <section className="countries card">
-          <h2>{copy.countries.selectorTitle}</h2>
-          <div className="country-grid">
-            {countryOptions.map((country) => (
+        {/* 2. Selector de Países (Colapsible y en lista en móvil) */}
+        <section className="countries card" aria-label={copy.countries.selectorTitle}>
+          <button
+            type="button"
+            className={`countries-toggle ${countriesOpen ? "open" : ""}`}
+            onClick={() => setCountriesOpen(!countriesOpen)}
+          >
+            <div className="countries-toggle-title">
+              <h2>{copy.countries.selectorTitle}</h2>
+            </div>
+            <div className="toggle-meta">
+              <span className="tabular selected-badge">
+                {selected.length === activeCountryIds.length
+                  ? copy.countries.all
+                  : selected.length === 1
+                  ? "1 país seleccionado"
+                  : `${selected.length} países seleccionados`}
+              </span>
+              <span className="toggle-chevron" aria-hidden="true">
+                ▼
+              </span>
+            </div>
+          </button>
+
+          <div className={`countries-content ${countriesOpen ? "open" : ""}`}>
+            <div className="country-grid">
+              {countryOptions.map((country) => (
+                <button
+                  key={country.id}
+                  disabled={!country.active}
+                  onClick={() => toggle(country.id)}
+                  className={`country ${selected.includes(country.id) ? "selected" : ""}`}
+                >
+                  <span className="checkbox" aria-hidden="true">
+                    {selected.includes(country.id) ? "✓" : ""}
+                  </span>
+                  <img
+                    className="flag"
+                    src={country.flagImage}
+                    alt=""
+                    aria-hidden="true"
+                    onError={(event) => {
+                      if (event.currentTarget.src.endsWith(GENERIC_FLAG_ASSET)) return;
+                      event.currentTarget.src = GENERIC_FLAG_ASSET;
+                    }}
+                  />
+                  <div className="country-info">
+                    <span className="country-name">{country.name}</span>
+                    {country.active ? (
+                      <small className="country-count tabular">
+                        {copy.countries.processCount.replace(
+                          "{n}",
+                          formatCount(country.processCount),
+                        )}
+                      </small>
+                    ) : (
+                      <small className="country-count">{copy.countries.soon}</small>
+                    )}
+                  </div>
+                </button>
+              ))}
               <button
-                key={country.id}
-                disabled={!country.active}
-                onClick={() => toggle(country.id)}
-                className={`country ${selected.includes(country.id) ? "selected" : ""}`}
+                className={`country all ${allActiveSelected ? "selected" : ""}`}
+                onClick={() => setSelected(allActiveSelected ? [] : activeCountryIds)}
+                disabled={activeCountryIds.length === 0}
               >
                 <span className="checkbox" aria-hidden="true">
-                  {selected.includes(country.id) ? "✓" : ""}
+                  {allActiveSelected ? "✓" : ""}
                 </span>
-                <img
-                  className="flag"
-                  src={country.flagImage}
-                  alt=""
-                  aria-hidden="true"
-                  onError={(event) => {
-                    if (event.currentTarget.src.endsWith(GENERIC_FLAG_ASSET)) return;
-                    event.currentTarget.src = GENERIC_FLAG_ASSET;
-                  }}
-                />
-                <span>
-                  {country.name}
-                  {country.active ? (
-                    <small>
-                      {copy.countries.processCount.replace(
-                        "{n}",
-                        formatCount(country.processCount),
-                      )}
-                    </small>
-                  ) : (
-                    <small>{copy.countries.soon}</small>
-                  )}
-                </span>
+                <GlobeIcon className="icon" size={24} />
+                <div className="country-info">
+                  <span className="country-name">{copy.countries.all}</span>
+                  <small className="country-count tabular">
+                    {`${activeCountryIds.length} países activos`}
+                  </small>
+                </div>
               </button>
-            ))}
-            <button
-              className={`country all ${allActiveSelected ? "selected" : ""}`}
-              onClick={() => setSelected(allActiveSelected ? [] : activeCountryIds)}
-              disabled={activeCountryIds.length === 0}
-            >
-              <span className="checkbox" aria-hidden="true">
-                {allActiveSelected ? "✓" : ""}
-              </span>
-              <GlobeIcon className="icon" />
-              <span>{copy.countries.all}</span>
-            </button>
+            </div>
           </div>
         </section>
 

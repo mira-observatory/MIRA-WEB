@@ -161,7 +161,29 @@ input:focus-visible {
 }
 .countries {
   margin-top: 14px;
-  padding: 21px 42px 24px;
+  padding: 21px 36px 24px;
+}
+.countries-toggle {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  cursor: default;
+}
+.countries-toggle-title h2 {
+  margin: 0 0 13px;
+  font-size: 18px;
+  line-height: 1.2;
+}
+.countries-toggle .toggle-meta {
+  display: none;
+}
+.countries-content {
+  display: block;
 }
 h2,
 h3,
@@ -191,6 +213,7 @@ h2 {
   font-weight: 600;
   transition: 0.15s;
   position: relative;
+  cursor: pointer;
 }
 .country:hover:not(:disabled) {
   transform: translateY(-1px);
@@ -233,11 +256,20 @@ h2 {
   border-radius: 4px;
   box-shadow: 0 1px 2px rgba(6, 27, 68, 0.08);
 }
-.country small {
+.country-info {
+  display: flex;
+  flex-direction: column;
+}
+.country-name {
+  font-size: 14px;
+  line-height: 1.2;
+}
+.country-count {
   display: block;
-  margin-top: 4px;
+  margin-top: 3px;
   font-weight: 400;
   font-size: 12px;
+  color: #556578;
 }
 .country.all .icon {
   color: #0d567b;
@@ -531,33 +563,117 @@ footer span:last-child {
   .metric:last-child {
     border: 0;
   }
-  .countries,
-  .ask {
-    padding: 22px 18px;
+  .countries {
+    padding: 16px 18px;
   }
-  .country-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+  .countries-toggle {
+    cursor: pointer;
+    padding: 2px 0;
   }
-  .country {
-    min-height: 52px;
-    padding: 6px 8px;
-    font-size: 13px;
+  .countries-toggle-title h2 {
+    margin: 0;
+    font-size: 15.5px;
+  }
+  .countries-toggle .toggle-meta {
+    display: flex;
+    align-items: center;
     gap: 8px;
   }
-  .flag {
-    width: 32px;
-    height: 22px;
+  .countries-toggle .selected-badge {
+    background: #eaf7f6;
+    color: #08777a;
+    padding: 4px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
   }
-  .checkbox {
-    left: 6px;
-    top: 6px;
-    width: 16px;
-    height: 16px;
-    font-size: 11px;
+  .countries-toggle .toggle-chevron {
+    font-size: 10px;
+    color: #087d85;
+    transition: transform 0.2s ease;
   }
-  .examples {
-    grid-template-columns: 1fr;
+  .countries-toggle.open .toggle-chevron {
+    transform: rotate(180deg);
+  }
+  .countries-content {
+    display: none;
+    margin-top: 12px;
+    border-top: 1px solid #edf0f2;
+    padding-top: 12px;
+  }
+  .countries-content.open {
+    display: block;
+  }
+  .country-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .country {
+    min-height: 50px;
+    width: 100%;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(16, 39, 68, 0.04);
+  }
+  .country .checkbox {
+    position: static;
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin: 0;
+  }
+  .country .flag {
+    width: 36px;
+    height: 25px;
+    flex: 0 0 36px;
+    border-radius: 4px;
+    object-fit: cover;
+    margin: 0;
+  }
+  .country.all .icon {
+    width: 36px;
+    flex: 0 0 36px;
+    display: grid;
+    place-items: center;
+    color: #0d567b;
+    font-size: 22px;
+  }
+  .country .country-info {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+  }
+  .country-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #123251;
+    text-align: left;
+  }
+  .country.selected .country-name {
+    color: #08777a;
+  }
+  .country-count {
+    font-size: 12px;
+    color: #647080;
+    margin: 0;
+    text-align: right;
+    font-weight: 400;
+  }
+  .ask {
+    padding: 22px 18px;
   }
   .search-box {
     height: auto;
