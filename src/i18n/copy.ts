@@ -65,17 +65,16 @@ export const copy = {
       },
     },
     ask: {
-      title: "Que quieres saber?",
-      description: "Escribe tu pregunta en lenguaje natural y MIRA buscara la informacion por ti.",
+      title: "¿Qué quieres saber?",
+      description: "Escribe tu consulta y MIRA buscará en los registros oficiales de compras públicas.",
       inputLabel: "Pregunta",
-      placeholder:
-        "Ejemplo: Que empresas recibieron mas contratos de medicamentos en los paises seleccionados entre 2024 y 2025?",
+      placeholder: "Ejemplo: ¿Cuáles fueron las compras de medicamentos más caras?",
       submit: "Consultar",
-      trust: "MIRA usa información pública oficial y siempre muestra la fuente de cada resultado.",
+      trust: "Datos públicos oficiales.",
       examplesButton: "Ver ejemplos",
-      examplesTitle: "Ejemplos de preguntas",
+      examplesTitle: "Consultas de ejemplo",
       missingQuestion: "Escribe una pregunta para comenzar.",
-      missingCountry: "Selecciona al menos un pais.",
+      missingCountry: "Selecciona al menos un país.",
     },
     examples: {
       mostContractsHonduras: "¿Qué empresas recibieron más contratos en Honduras en 2023?",
