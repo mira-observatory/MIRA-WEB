@@ -5,6 +5,7 @@ import {
   countryFlagAsset,
   countryLabel,
   tableTitle,
+  toCsv,
   toHtmlTable,
   toMarkdown,
   toTsv,
@@ -113,10 +114,26 @@ describe("toTsv", () => {
   });
 });
 
+describe("toCsv", () => {
+  it("genera encabezado y una linea por resultado", () => {
+    const csv = toCsv(COLUMNAS, [
+      { process_id: "MIRA-CR-1", awarded_amount: "1500", country_code: "CR" },
+    ]);
+
+    expect(csv.split("\r\n")).toHaveLength(2);
+    expect(csv).toContain("MIRA-CR-1");
+  });
+
+  it("escapa comas, comillas y saltos de linea sin alterar el contenido", () => {
+    const columnas: QueryColumn[] = [{ name: "title", kind: "text", currency_code: null }];
+    const csv = toCsv(columnas, [{ title: 'Compra, "urgente"\nsegunda línea' }]);
+
+    expect(csv).toContain('"Compra, ""urgente""\nsegunda línea"');
+  });
+});
+
 describe("toHtmlTable", () => {
-  const filas = [
-    { process_id: "MIRA-CR-1", awarded_amount: "1500", country_code: "CR" },
-  ];
+  const filas = [{ process_id: "MIRA-CR-1", awarded_amount: "1500", country_code: "CR" }];
 
   it("genera un fragmento table HTML con thead y tbody", () => {
     const html = toHtmlTable(COLUMNAS, filas);
@@ -125,4 +142,3 @@ describe("toHtmlTable", () => {
     expect(html).toContain("MIRA-CR-1");
   });
 });
-

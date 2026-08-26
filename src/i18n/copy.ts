@@ -66,7 +66,8 @@ export const copy = {
     },
     ask: {
       title: "¿Qué quieres saber?",
-      description: "Escribe tu consulta y MIRA buscará en los registros oficiales de compras públicas.",
+      description:
+        "Escribe tu consulta y MIRA buscará en los registros oficiales de compras públicas.",
       inputLabel: "Pregunta",
       placeholder: "Ejemplo: ¿Cuáles fueron las compras de medicamentos más caras?",
       submit: "Consultar",
@@ -148,6 +149,7 @@ export const copy = {
     titleNoCountry: "Resultado",
     copyMarkdown: "Copiar como Markdown",
     copied: "Copiado",
+    exportCsv: "Exportar CSV",
     truncated: "Resultado truncado -- hay mas filas de las que se muestran aqui",
   },
   sql: {
