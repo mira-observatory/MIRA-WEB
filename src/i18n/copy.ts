@@ -107,6 +107,14 @@ export const copy = {
     generatedByAi: "Generado por IA",
     verifiedAgainstData: "Verificado contra los datos",
     verifiedAgainstTable: "Verificado contra los datos de la tabla",
+    actions: {
+      copy: "Copiar",
+      copied: "Copiado",
+      copyResponse: "Copiar respuesta",
+      copyTable: "Copiar tabla",
+      downloadCsv: "Descargar como CSV",
+      moreOptions: "Más opciones",
+    },
   },
   status: {
     out_of_scope: {

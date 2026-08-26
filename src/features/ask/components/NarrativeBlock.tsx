@@ -1,4 +1,5 @@
 import { SparkIcon } from "../../../components/icons";
+import { MarkdownRenderer } from "../../../components/markdown/MarkdownRenderer";
 import { copy } from "../../../i18n/copy";
 
 type Props = {
@@ -19,7 +20,7 @@ export function NarrativeBlock({ text, verified, isTemplateOnly }: Props) {
   if (isTemplateOnly) {
     return (
       <div className="rounded-2xl border border-rule bg-paper px-5 py-4">
-        <p className="font-sans text-sm leading-relaxed text-ink-soft">{text}</p>
+        <MarkdownRenderer content={text} className="font-sans text-sm text-ink-soft" />
       </div>
     );
   }
@@ -34,7 +35,8 @@ export function NarrativeBlock({ text, verified, isTemplateOnly }: Props) {
           </span>
         )}
       </div>
-      <p className="font-display text-[17px] leading-relaxed text-ink">{text}</p>
+      <MarkdownRenderer content={text} />
     </div>
   );
 }
+

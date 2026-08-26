@@ -1,7 +1,9 @@
 import { SparkIcon } from "../../../components/icons";
+import { MarkdownRenderer } from "../../../components/markdown/MarkdownRenderer";
 import { copy } from "../../../i18n/copy";
 import { classifyOutcome } from "../outcome";
 import type { Turn, TurnPhase } from "../useAskConversation";
+import { AnswerActions } from "./AnswerActions";
 import { ResultTable } from "./ResultTable";
 import { StatusPanel } from "./StatusPanel";
 
@@ -68,12 +70,12 @@ function ResultWarning({ message }: { message: string }) {
 
 function Narrative({ text, verified, plain }: { text: string; verified: boolean; plain: boolean }) {
   if (plain) {
-    return <p className="font-sans text-sm leading-relaxed text-ink-soft">{text}</p>;
+    return <MarkdownRenderer content={text} className="font-sans text-sm text-ink-soft" />;
   }
   return (
     <div>
-      <p className="font-display text-[16px] leading-relaxed text-ink">{text}</p>
-      <p className="mt-1.5 flex flex-wrap items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
+      <MarkdownRenderer content={text} />
+      <p className="mt-2 flex flex-wrap items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
         {copy.askTurn.generatedByAi}
         {verified && (
           <span className="rounded-full bg-quetzal/10 px-2 py-0.5 normal-case tracking-normal text-quetzal">
@@ -161,6 +163,14 @@ function AnswerBody({ turn }: { turn: Turn }) {
           countries={turn.countries}
         />
       )}
+      {turn.phase === "done" && (Boolean(turn.narrative) || hayTabla) && (
+        <AnswerActions
+          text={turn.narrative || ""}
+          columns={turn.columns}
+          rows={turn.rows}
+        />
+      )}
     </>
   );
 }
+
