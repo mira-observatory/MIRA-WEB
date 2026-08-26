@@ -375,6 +375,12 @@ export interface components {
             /** Countries Filter */
             countries_filter: string[];
             /**
+             * Language
+             * @default es
+             * @enum {string}
+             */
+            language: "es" | "en";
+            /**
              * Columns
              * @default []
              */
@@ -456,9 +462,11 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "PARTIAL_COVERAGE" | "MIXED_CURRENCY" | "TRUNCATED_RESULT" | "NULL_AMOUNTS_EXCLUDED" | "NO_DATA_FOR_PERIOD";
+            code: "PARTIAL_COVERAGE" | "MIXED_CURRENCY" | "TRUNCATED_RESULT" | "NULL_AMOUNTS_EXCLUDED" | "NO_DATA_FOR_PERIOD" | "UNNORMALISED_ITEM_TEXT";
             /** Message Es */
             message_es: string;
+            /** Message En */
+            message_en?: string | null;
             /**
              * Details
              * @default {}

@@ -18,6 +18,7 @@ function turn(overrides: Partial<Turn> = {}): Turn {
     narrativeVerified: false,
     outcome: "OK" as Outcome,
     warnings: [],
+    language: "es",
     failed: false,
     ...overrides,
   };
@@ -56,6 +57,7 @@ describe("applyEvent", () => {
     const t = applyEvent(turn(), {
       type: "warnings",
       warnings: [{ code: "PARTIAL_COVERAGE", message_es: "todavia no hay adjudicaciones" }],
+      language: "es",
     });
 
     expect(t.warnings).toHaveLength(1);
@@ -108,5 +110,21 @@ describe("buildHistory", () => {
     ]);
 
     expect(history.map((h) => h.question)).toEqual(["dos", "tres", "cuatro"]);
+  });
+});
+
+describe("idioma de la respuesta", () => {
+  it("guarda el idioma que reporto el backend", () => {
+    const t = applyEvent(turn(), {
+      type: "warnings",
+      warnings: [{ code: "PARTIAL_COVERAGE", message_es: "vacio", message_en: "empty" }],
+      language: "en",
+    });
+
+    expect(t.language).toBe("en");
+  });
+
+  it("arranca en espanol", () => {
+    expect(turn().language).toBe("es");
   });
 });

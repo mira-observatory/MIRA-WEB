@@ -2,7 +2,12 @@ import { useState } from "react";
 
 import type { ConversationTurn, Outcome, QueryColumn } from "./api";
 import { classifyOutcome } from "./outcome";
-import { streamQuery, type QueryWarning, type StreamEvent } from "./stream";
+import {
+  streamQuery,
+  type QueryWarning,
+  type ResponseLanguage,
+  type StreamEvent,
+} from "./stream";
 
 //: El backend acepta 3 turnos como maximo (QueryRequest.history).
 const MAX_HISTORY = 3;
@@ -32,6 +37,9 @@ export type Turn = {
    * todavia no estan cargados. Un cero sin esta distincion hace parecer que
    * no pasa nada donde en realidad no estamos mirando. */
   warnings: QueryWarning[];
+  /** Idioma en que respondio el backend, detectado de la pregunta. Decide
+   * cual de los dos textos de cada aviso se muestra. */
+  language: ResponseLanguage;
   /** La conexion fallo (red, servicio caido). Distinto de un outcome
    * FAILED_*, que es el servicio respondiendo que algo salio mal adentro. */
   failed: boolean;
@@ -52,6 +60,7 @@ function emptyTurn(id: string, question: string, countries: string[]): Turn {
     narrativeVerified: false,
     outcome: null,
     warnings: [],
+    language: "es",
     failed: false,
   };
 }
@@ -71,7 +80,7 @@ export function applyEvent(turn: Turn, event: StreamEvent): Turn {
     case "rows":
       return { ...turn, columns: event.columns, rows: event.rows, phase: "writing" };
     case "warnings":
-      return { ...turn, warnings: event.warnings };
+      return { ...turn, warnings: event.warnings, language: event.language };
     case "narrative":
       return { ...turn, narrative: event.text, narrativeVerified: event.verified };
     case "error":

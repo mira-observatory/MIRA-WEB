@@ -1,13 +1,31 @@
 import type { ConversationTurn, Outcome, QueryColumn } from "./api";
 import { copy } from "../../i18n/copy";
 
-export type QueryWarning = { code: string; message_es: string };
+export type ResponseLanguage = "es" | "en";
+
+export type QueryWarning = {
+  code: string;
+  message_es: string;
+  /** El mismo aviso en ingles. Opcional: un backend viejo no lo manda. */
+  message_en?: string | null;
+};
+
+/**
+ * El aviso en el idioma de la respuesta, con el espanol como respaldo.
+ *
+ * Con cero filas este texto no es un adorno: es la respuesta entera, porque
+ * el turno muestra el aviso en lugar del parrafo. Dejarlo vacio por no tener
+ * traduccion seria peor que mostrarlo en el otro idioma.
+ */
+export function warningText(warning: QueryWarning, language: ResponseLanguage): string {
+  return language === "en" && warning.message_en ? warning.message_en : warning.message_es;
+}
 
 export type StreamEvent =
   | { type: "sql"; sql: string }
   | { type: "row_count"; rowCount: number; truncated: boolean }
   | { type: "rows"; columns: QueryColumn[]; rows: Record<string, unknown>[] }
-  | { type: "warnings"; warnings: QueryWarning[] }
+  | { type: "warnings"; warnings: QueryWarning[]; language: ResponseLanguage }
   | { type: "narrative"; text: string | null; verified: boolean }
   | { type: "error"; outcome: Outcome }
   | { type: "done"; outcome: Outcome };
@@ -51,7 +69,12 @@ export function parseFrame(frame: string): StreamEvent | null {
         rows: (data.rows ?? []) as Record<string, unknown>[],
       };
     case "warnings":
-      return { type: "warnings", warnings: (data.warnings ?? []) as QueryWarning[] };
+      return {
+        type: "warnings",
+        warnings: (data.warnings ?? []) as QueryWarning[],
+        // Un backend anterior a esto no manda idioma: espanol, que es el default.
+        language: data.language === "en" ? "en" : "es",
+      };
     case "narrative":
       return {
         type: "narrative",

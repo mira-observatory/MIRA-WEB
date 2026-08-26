@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { drainFrames, parseFrame } from "./stream";
+import { drainFrames, parseFrame, warningText } from "./stream";
 
 describe("drainFrames", () => {
   it("separa frames completos y devuelve el resto a medias", () => {
@@ -56,5 +56,25 @@ describe("parseFrame", () => {
 
   it("ignora un frame sin datos", () => {
     expect(parseFrame("event: rows")).toBeNull();
+  });
+});
+
+describe("warningText", () => {
+  const aviso = { code: "PARTIAL_COVERAGE", message_es: "vacío", message_en: "empty" };
+
+  it("elige el texto segun el idioma de la respuesta", () => {
+    expect(warningText(aviso, "en")).toBe("empty");
+    expect(warningText(aviso, "es")).toBe("vacío");
+  });
+
+  it("sin traduccion cae al espanol en vez de quedar vacio", () => {
+    // Con cero filas el aviso ES la respuesta: dejarlo en blanco seria peor
+    // que mostrarlo en el otro idioma.
+    expect(warningText({ code: "X", message_es: "solo español" }, "en")).toBe("solo español");
+  });
+
+  it("un backend sin idioma se asume espanol", () => {
+    const evento = parseFrame('event: warnings\ndata: {"warnings":[]}');
+    expect(evento).toEqual({ type: "warnings", warnings: [], language: "es" });
   });
 });

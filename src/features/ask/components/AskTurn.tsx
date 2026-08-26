@@ -2,6 +2,7 @@ import { SparkIcon } from "../../../components/icons";
 import { MarkdownRenderer } from "../../../components/markdown/MarkdownRenderer";
 import { copy } from "../../../i18n/copy";
 import { classifyOutcome } from "../outcome";
+import { warningText } from "../stream";
 import type { Turn, TurnPhase } from "../useAskConversation";
 import { AnswerActions } from "./AnswerActions";
 import { ResultTable } from "./ResultTable";
@@ -140,7 +141,7 @@ function AnswerBody({ turn }: { turn: Turn }) {
       {turn.phase !== "done" ? (
         <PhaseStatus phase={turn.phase} />
       ) : avisoEnLugarDeLaRespuesta ? (
-        <ResultWarning message={avisoEnLugarDeLaRespuesta.message_es} />
+        <ResultWarning message={warningText(avisoEnLugarDeLaRespuesta, turn.language)} />
       ) : (
         turn.narrative && (
           <Narrative
@@ -152,7 +153,7 @@ function AnswerBody({ turn }: { turn: Turn }) {
       )}
       {turn.phase === "done" &&
         avisosSobreLaTabla.map((aviso) => (
-          <ResultWarning key={aviso.code} message={aviso.message_es} />
+          <ResultWarning key={aviso.code} message={warningText(aviso, turn.language)} />
         ))}
       {hayTabla && (
         <ResultTable
