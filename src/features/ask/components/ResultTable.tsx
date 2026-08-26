@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckIcon, CopyIcon } from "../../../components/icons";
+import { CheckIcon, CopyIcon, DownloadIcon } from "../../../components/icons";
 import { copy } from "../../../i18n/copy";
 import { formatCount, formatDate, formatMoney } from "../../../lib/format";
 import type { QueryColumn } from "../api";
@@ -8,6 +8,7 @@ import {
   GENERIC_FLAG_ASSET,
   countryFlagAsset,
   tableTitle,
+  toCsv,
   toHtmlTable,
   toTsv,
 } from "../tableMarkdown";
@@ -26,13 +27,7 @@ type Props = {
 /**
  * Botón para copiar la tabla directamente en formato compatible con Excel / Google Sheets.
  */
-function CopyDataButton({
-  columns,
-  rows,
-}: {
-  columns: QueryColumn[];
-  rows: Row[];
-}) {
+function CopyDataButton({ columns, rows }: { columns: QueryColumn[]; rows: Row[] }) {
   const [copiado, setCopiado] = useState(false);
 
   const copiar = async (e: React.MouseEvent) => {
@@ -70,7 +65,9 @@ function CopyDataButton({
     <button
       type="button"
       onClick={copiar}
-      title={copiado ? "Tabla copiada (lista para pegar en Excel o Sheets)" : "Copiar tabla para Excel"}
+      title={
+        copiado ? "Tabla copiada (lista para pegar en Excel o Sheets)" : "Copiar tabla para Excel"
+      }
       aria-label={copiado ? "Tabla copiada" : "Copiar tabla"}
       className="flex items-center gap-1.5 rounded-lg border border-rule bg-paper px-2.5 py-1 text-xs font-medium text-ink-soft transition hover:border-isthmus/40 hover:bg-paper-sunken hover:text-ink focus-visible:ring-2"
     >
@@ -85,6 +82,34 @@ function CopyDataButton({
           <span className="text-[11px]">Copiar</span>
         </>
       )}
+    </button>
+  );
+}
+
+function ExportCsvButton({ columns, rows }: { columns: QueryColumn[]; rows: Row[] }) {
+  const exportar = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const blob = new Blob(["\uFEFF", toCsv(columns, rows)], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = `mira-resultados-${new Date().toISOString().slice(0, 10)}.csv`;
+    enlace.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={exportar}
+      title={copy.table.exportCsv}
+      aria-label={copy.table.exportCsv}
+      className="flex items-center gap-1.5 rounded-lg border border-rule bg-paper px-2.5 py-1 text-xs font-medium text-ink-soft transition hover:border-isthmus/40 hover:bg-paper-sunken hover:text-ink focus-visible:ring-2"
+    >
+      <DownloadIcon size={14} />
+      <span className="text-[11px]">CSV</span>
     </button>
   );
 }
@@ -180,11 +205,13 @@ export function ResultTable({ columns, rows, rowCount, truncated, countries }: P
             <span>{tableTitle(countries)}</span>
           </h4>
           <span className="rounded-full bg-paper-sunken border border-rule px-2 py-0.5 font-mono text-[11px] font-medium text-ink-soft tabular">
-            {formatCount(rowCount)} {rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows}
+            {formatCount(rowCount)}{" "}
+            {rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows}
           </span>
         </div>
 
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <ExportCsvButton columns={columns} rows={rows} />
           <CopyDataButton columns={columns} rows={rows} />
           <button
             type="button"
@@ -223,7 +250,10 @@ export function ResultTable({ columns, rows, rowCount, truncated, countries }: P
               </thead>
               <tbody>
                 {rows.map((row, index) => (
-                  <tr key={index} className="border-b border-rule/60 last:border-0 even:bg-paper/50">
+                  <tr
+                    key={index}
+                    className="border-b border-rule/60 last:border-0 even:bg-paper/50"
+                  >
                     {columns.map((column) => (
                       <td
                         key={column.name}
@@ -244,7 +274,8 @@ export function ResultTable({ columns, rows, rowCount, truncated, countries }: P
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule px-4 py-2.5 text-xs text-ink-soft">
             <span className="font-mono">
-              {formatCount(rowCount)} {rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows}
+              {formatCount(rowCount)}{" "}
+              {rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows}
             </span>
             {truncated && (
               <span className="rounded-full bg-maize/15 px-2.5 py-1 font-sans font-medium text-[#8a6a15]">

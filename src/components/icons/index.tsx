@@ -150,6 +150,12 @@ export const CopyIcon = (props: IconProps) => (
   </LineIcon>
 );
 
+export const DownloadIcon = (props: IconProps) => (
+  <LineIcon {...props} strokeWidth={2}>
+    <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" />
+  </LineIcon>
+);
+
 export const CheckIcon = (props: IconProps) => (
   <LineIcon {...props} strokeWidth={2.5}>
     <path d="M20 6 9 17l-5-5" />

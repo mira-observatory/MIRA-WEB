@@ -90,13 +90,8 @@ export function toMarkdown(
  * Es el formato nativo estándar que Microsoft Excel, Google Sheets,
  * LibreOffice Calc y Apple Numbers pegan en celdas perfectas sin configuración.
  */
-export function toTsv(
-  columns: QueryColumn[],
-  rows: Row[],
-): string {
-  const encabezado = columns.map((c) =>
-    headerLabel(c, rows).replace(/[\t\r\n]+/g, " "),
-  );
+export function toTsv(columns: QueryColumn[], rows: Row[]): string {
+  const encabezado = columns.map((c) => headerLabel(c, rows).replace(/[\t\r\n]+/g, " "));
   const cuerpo = rows.map((row) =>
     columns.map((column) => {
       const pais = typeof row["country_code"] === "string" ? row["country_code"] : undefined;
@@ -108,17 +103,30 @@ export function toTsv(
   return [encabezado.join("\t"), ...cuerpo.map((fila) => fila.join("\t"))].join("\r\n");
 }
 
+/** Escapa una celda según RFC 4180 para conservar comas, comillas y saltos de línea. */
+function csvCell(value: string): string {
+  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+}
+
+/** Genera un CSV con los mismos encabezados y valores visibles en la tabla. */
+export function toCsv(columns: QueryColumn[], rows: Row[]): string {
+  const encabezado = columns.map((column) => csvCell(headerLabel(column, rows)));
+  const cuerpo = rows.map((row) =>
+    columns.map((column) => {
+      const pais = typeof row["country_code"] === "string" ? row["country_code"] : undefined;
+      return csvCell(formatCell(row[column.name], column, pais, cellCurrencyCode(row, column)));
+    }),
+  );
+
+  return [encabezado.join(","), ...cuerpo.map((fila) => fila.join(","))].join("\r\n");
+}
+
 /**
  * Genera un fragmento HTML <table> estándar para que al pegar en Excel, Word,
  * Google Docs o aplicaciones ricas, se inserte una tabla con formato.
  */
-export function toHtmlTable(
-  columns: QueryColumn[],
-  rows: Row[],
-): string {
-  const ths = columns
-    .map((c) => `<th>${headerLabel(c, rows)}</th>`)
-    .join("");
+export function toHtmlTable(columns: QueryColumn[], rows: Row[]): string {
+  const ths = columns.map((c) => `<th>${headerLabel(c, rows)}</th>`).join("");
   const trs = rows
     .map((row) => {
       const tds = columns
