@@ -326,23 +326,38 @@ h2 {
   opacity: 1;
 }
 .search-box button {
-  flex: 0 0 155px;
-  align-self: stretch;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  margin-right: 10px;
   border: 0;
-  min-width: 155px;
+  border-radius: 50%;
   color: #fff;
   background: linear-gradient(135deg, #05aaa1, #079c83);
-  font-weight: 650;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  font-size: 15px;
   cursor: pointer;
-  transition: opacity 0.15s;
+  box-shadow: 0 2px 8px rgba(5, 170, 161, 0.3);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  animation: fadeInZoom 0.15s ease-out;
 }
 .search-box button:hover {
-  opacity: 0.94;
+  transform: scale(1.06);
+  opacity: 0.96;
+}
+.search-box button:active {
+  transform: scale(0.95);
+}
+@keyframes fadeInZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 .trust-row {
   margin-top: 9px;
@@ -672,23 +687,28 @@ footer span:last-child {
     text-align: right;
     font-weight: 400;
   }
-  .ask {
-    padding: 22px 18px;
-  }
   .search-box {
-    height: auto;
-    flex-wrap: wrap;
-    padding-top: 8px;
+    height: 58px;
+    flex-wrap: nowrap;
+    padding: 0;
+  }
+  .search-box > .icon {
+    margin: 0 10px 0 12px;
   }
   .search-box input {
-    height: 56px;
-    width: calc(100% - 70px);
-    flex: auto;
+    height: 100%;
+    width: auto;
+    flex: 1;
+    font-size: 14px;
+    padding: 0 8px 0 0;
   }
   .search-box button {
-    width: 100%;
-    flex-basis: 100%;
-    min-height: 53px;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    min-height: 40px;
+    margin-right: 8px;
+    border-radius: 50%;
   }
   .trust-row {
     align-items: flex-start;
