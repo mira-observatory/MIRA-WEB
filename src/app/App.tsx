@@ -11,7 +11,7 @@ import {
   PillIcon,
   RefreshIcon,
   SearchIcon,
-  SendIcon,
+  ArrowUpIcon,
   ShieldIcon,
   SparkIcon,
 } from "../components/icons";
@@ -292,10 +292,15 @@ export function App() {
               aria-label={copy.home.ask.inputLabel}
               placeholder={copy.home.ask.placeholder}
             />
-            <button type="submit">
-              <SendIcon className="icon" />
-              {copy.home.ask.submit}
-            </button>
+            {question.trim().length > 0 && (
+              <button
+                type="submit"
+                aria-label={copy.home.ask.submit}
+                title={copy.home.ask.submit}
+              >
+                <ArrowUpIcon size={20} />
+              </button>
+            )}
           </form>
           <div className="trust-row">
             <p>

@@ -172,3 +172,16 @@ export const DownloadIcon = (props: IconProps) => (
   </LineIcon>
 );
 
+export const ArrowUpIcon = (props: IconProps) => (
+  <LineIcon {...props} strokeWidth={2.5}>
+    <path d="M12 19V5M5 12l7-7 7 7" />
+  </LineIcon>
+);
+
+export const ArrowRightIcon = (props: IconProps) => (
+  <LineIcon {...props} strokeWidth={2.5}>
+    <path d="M5 12h14M12 5l7 7-7 7" />
+  </LineIcon>
+);
+
+

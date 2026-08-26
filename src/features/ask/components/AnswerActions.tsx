@@ -148,43 +148,30 @@ export function AnswerActions({ text, columns = [], rows = [], className = "" }:
         )}
       </button>
 
-      {/* Botón Menú ⋯ */}
-      <div className="relative">
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-expanded={menuOpen}
-          aria-haspopup="true"
-          title={copy.askTurn.actions.moreOptions}
-          aria-label={copy.askTurn.actions.moreOptions}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-rule/60 bg-paper text-ink-soft transition hover:border-isthmus/40 hover:bg-paper-sunken hover:text-ink focus-visible:ring-2 focus-visible:ring-isthmus"
-        >
-          <MoreHorizontalIcon size={16} />
-        </button>
-
-        {/* Menú Contextual Desplegable */}
-        {menuOpen && (
-          <div
-            ref={menuRef}
-            role="menu"
-            aria-orientation="vertical"
-            className="absolute left-0 bottom-full mb-1.5 z-30 min-w-[180px] rounded-xl border border-rule bg-paper-raised p-1.5 shadow-lg animate-in fade-in zoom-in-95 duration-100"
+      {/* Botón Menú ⋯ (acciones para tablas) */}
+      {hasTable && (
+        <div className="relative">
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-expanded={menuOpen}
+            aria-haspopup="true"
+            title={copy.askTurn.actions.moreOptions}
+            aria-label={copy.askTurn.actions.moreOptions}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-rule/60 bg-paper text-ink-soft transition hover:border-isthmus/40 hover:bg-paper-sunken hover:text-ink focus-visible:ring-2 focus-visible:ring-isthmus"
           >
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                handleCopy();
-                setMenuOpen(false);
-              }}
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs font-medium text-ink transition hover:bg-paper-sunken"
-            >
-              <CopyIcon size={14} className="text-ink-soft" />
-              <span>{hasTable ? copy.askTurn.actions.copyTable : copy.askTurn.actions.copyResponse}</span>
-            </button>
+            <MoreHorizontalIcon size={16} />
+          </button>
 
-            {hasTable && (
+          {/* Menú Contextual Desplegable */}
+          {menuOpen && (
+            <div
+              ref={menuRef}
+              role="menu"
+              aria-orientation="vertical"
+              className="absolute left-0 bottom-full mb-1.5 z-30 min-w-[170px] rounded-xl border border-rule bg-paper-raised p-1 shadow-lg animate-in fade-in zoom-in-95 duration-100"
+            >
               <button
                 type="button"
                 role="menuitem"
@@ -194,10 +181,10 @@ export function AnswerActions({ text, columns = [], rows = [], className = "" }:
                 <DownloadIcon size={14} className="text-ink-soft" />
                 <span>{copy.askTurn.actions.downloadCsv}</span>
               </button>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
