@@ -118,7 +118,7 @@ export const copy = {
     entityHint: "Escribe un nombre y selecciona una coincidencia si aparece.",
     entityNeedsCountry: "Selecciona al menos un país en la sección superior para buscar nombres.",
     entitySearching: "Buscando coincidencias...",
-    entityUnavailable: "No se pudo consultar el catálogo de nombres.",
+    entityUnavailable: "No se pudieron cargar sugerencias. Puedes continuar con el nombre escrito.",
     entityNoMatches: "No encontramos coincidencias para este nombre.",
     entityRecords: "{n} registros",
     amountGroup: "Monto registrado",

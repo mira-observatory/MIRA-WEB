@@ -14,6 +14,7 @@ import {
   type ManualSearchFilters,
   type ManualSearchStatus,
   validateManualSearchFilters,
+  withEntityType,
 } from "./manualSearch";
 
 type Props = {
@@ -48,10 +49,7 @@ export function ManualSearchPanel({ countries, isPending, onBack, onSearch }: Pr
   }, [onBack]);
 
   useEffect(() => {
-    const timeout = window.setTimeout(
-      () => setDebouncedEntityName(filters.entityName.trim()),
-      300,
-    );
+    const timeout = window.setTimeout(() => setDebouncedEntityName(filters.entityName.trim()), 300);
     return () => window.clearTimeout(timeout);
   }, [filters.entityName]);
 
@@ -85,8 +83,7 @@ export function ManualSearchPanel({ countries, isPending, onBack, onSearch }: Pr
   };
 
   const changeEntityType = (entityType: ManualEntityType) => {
-    setFilters((current) => ({ ...current, entityType, entityName: "" }));
-    setDebouncedEntityName("");
+    setFilters((current) => withEntityType(current, entityType));
     setValidationError(null);
   };
 
@@ -108,8 +105,7 @@ export function ManualSearchPanel({ countries, isPending, onBack, onSearch }: Pr
 
   const showCurrencyWarning = hasMixedCurrencyAmountRisk(filters, countries);
   const candidates = entitiesQuery.data ?? [];
-  const showSuggestions =
-    entityFocused && countries.length > 0 && debouncedEntityName.length >= 2;
+  const showSuggestions = entityFocused && countries.length > 0 && debouncedEntityName.length >= 2;
 
   return (
     <div className="manual-search-panel">

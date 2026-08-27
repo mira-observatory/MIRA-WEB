@@ -6,6 +6,7 @@ import {
   hasMixedCurrencyAmountRisk,
   type ManualSearchFilters,
   validateManualSearchFilters,
+  withEntityType,
 } from "./manualSearch";
 
 function filters(overrides: Partial<ManualSearchFilters> = {}): ManualSearchFilters {
@@ -29,7 +30,7 @@ describe("buildManualSearchQuestion", () => {
     );
 
     expect(question).toBe(
-      "Busca procesos de contratación en Guatemala y Costa Rica; publicados entre 2026-01-01 y 2026-03-31; con estados normalizados OPEN y AWARDED; cuya modalidad de contratación contenga \"Compra Directa\"; del comprador llamado \"Ministerio de 'Salud'\"; con monto registrado entre 1000 y 5000; en la moneda reportada por cada país, sin convertir ni sumar monedas.",
+      'Busca procesos de contratación en Guatemala y Costa Rica; publicados entre 2026-01-01 y 2026-03-31; con estados normalizados OPEN y AWARDED; cuya modalidad de contratación contenga "Compra Directa"; del comprador llamado "Ministerio de \'Salud\'"; con monto registrado entre 1000 y 5000; en la moneda reportada por cada país, sin convertir ni sumar monedas.',
     );
   });
 
@@ -58,12 +59,20 @@ describe("buildManualSearchQuestion", () => {
 });
 
 describe("manual search validation", () => {
+  it("conserva el nombre al alternar entre comprador y proveedor", () => {
+    const current = filters({ entityType: "buyer", entityName: "Ministerio de Salud" });
+
+    expect(withEntityType(current, "supplier")).toMatchObject({
+      entityType: "supplier",
+      entityName: "Ministerio de Salud",
+    });
+  });
+
   it("rechaza rangos invertidos", () => {
     expect(
-      validateManualSearchFilters(
-        filters({ dateFrom: "2026-04-01", dateTo: "2026-03-01" }),
-        ["GT"],
-      ),
+      validateManualSearchFilters(filters({ dateFrom: "2026-04-01", dateTo: "2026-03-01" }), [
+        "GT",
+      ]),
     ).toContain("fecha inicial");
     expect(
       validateManualSearchFilters(filters({ amountMin: "500", amountMax: "100" }), ["GT"]),

@@ -157,3 +157,10 @@ export function hasMixedCurrencyAmountRisk(
 ): boolean {
   return countryCodes.length > 1 && Boolean(filters.amountMin || filters.amountMax);
 }
+
+export function withEntityType(
+  filters: ManualSearchFilters,
+  entityType: ManualEntityType,
+): ManualSearchFilters {
+  return { ...filters, entityType };
+}
