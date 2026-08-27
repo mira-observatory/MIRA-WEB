@@ -25,7 +25,6 @@ export const copy = {
     //: y cual recien empieza.
     processCount: "{n} procesos",
     all: "Todos los países",
-    selectorTitle: "Selecciona uno o más países",
   },
   home: {
     coverageAriaLabel: "Resumen de cobertura",
@@ -43,6 +42,10 @@ export const copy = {
       unavailable: "sin dato",
       countries: {
         label: "Países disponibles",
+        detailTitle: "Cobertura por país",
+        withData: "Con datos",
+        soonStatus: "Próximamente",
+        inactiveStatus: "Inactivo",
         activeSuffix: "con datos",
         soonSuffix: "próximamente",
       },
@@ -66,8 +69,7 @@ export const copy = {
     },
     ask: {
       title: "¿Qué quieres saber?",
-      description:
-        "Escribe tu consulta y MIRA buscará en los registros oficiales de compras públicas.",
+      description: "Escribe tu consulta y MIRA buscará en todos los países con datos disponibles.",
       inputLabel: "Pregunta",
       placeholder: "Ejemplo: ¿Cuáles fueron las compras de medicamentos más caras?",
       submit: "Consultar",
@@ -75,12 +77,13 @@ export const copy = {
       examplesButton: "Ver ejemplos",
       examplesTitle: "Consultas de ejemplo",
       missingQuestion: "Escribe una pregunta para comenzar.",
-      missingCountry: "Selecciona al menos un país.",
+      missingCountry: "No hay países con datos disponibles en este momento.",
       manualSearch: "Buscar con filtros",
+      filterHint: "¿No sabes qué buscar?",
     },
     examples: {
       mostContractsHonduras: "¿Qué empresas recibieron más contratos en Honduras en 2023?",
-      medicinePurchases: "Muéstrame compras de medicamentos en los países seleccionados.",
+      medicinePurchases: "Muéstrame compras de medicamentos en los países disponibles.",
       computerEquipmentCostaRica: "¿Cuánto se contrató en equipo de cómputo en Costa Rica en 2024?",
       directAwardInstitutions: "¿Qué instituciones hicieron más compras por adjudicación directa?",
     },
@@ -98,9 +101,11 @@ export const copy = {
   },
   manualSearch: {
     title: "Búsqueda por filtros",
-    description:
-      "Completa solo los filtros que necesites. La consulta respetará los países seleccionados arriba.",
+    description: "Selecciona los países y completa solo los filtros que necesites.",
     back: "Volver a la pregunta libre",
+    countryGroup: "Países",
+    countryLoading: "Cargando países disponibles...",
+    countryUnavailable: "No se pudieron cargar los países disponibles.",
     dateGroup: "Rango de fechas de publicación",
     dateFrom: "Desde",
     dateTo: "Hasta",
@@ -119,7 +124,7 @@ export const copy = {
     entityName: "Nombre",
     entityPlaceholder: "Escribe al menos 2 caracteres",
     entityHint: "Escribe un nombre y selecciona una coincidencia si aparece.",
-    entityNeedsCountry: "Selecciona al menos un país en la sección superior para buscar nombres.",
+    entityNeedsCountry: "Selecciona al menos un país para buscar nombres.",
     entitySearching: "Buscando coincidencias...",
     entityUnavailable: "No se pudieron cargar sugerencias. Puedes continuar con el nombre escrito.",
     entityNoMatches: "No encontramos coincidencias para este nombre.",
@@ -132,7 +137,7 @@ export const copy = {
       "Los países seleccionados reportan montos en monedas distintas. MIRA aplicará los límites en la moneda informada por cada país; no comparará, convertirá ni sumará monedas.",
     submit: "Buscar procedimientos",
     errors: {
-      missingCountry: "Selecciona al menos un país arriba antes de buscar.",
+      missingCountry: "Selecciona al menos un país antes de buscar.",
       invalidDateRange: "La fecha inicial no puede ser posterior a la fecha final.",
       invalidAmountRange: "El monto mínimo no puede ser mayor que el monto máximo.",
     },

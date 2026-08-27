@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { FormEvent, FocusEvent, useEffect, useId, useRef, useState } from "react";
 
-import { ArrowLeftIcon, SearchIcon, ShieldIcon } from "../../components/icons";
+import { ArrowLeftIcon, GlobeIcon, SearchIcon, ShieldIcon } from "../../components/icons";
 import { copy } from "../../i18n/copy";
 import { formatCount } from "../../lib/format";
 import { fetchProcessStatuses } from "../procedures/api";
@@ -17,28 +17,55 @@ import {
   withEntityType,
 } from "./manualSearch";
 
+export type ManualCountryOption = {
+  code: string;
+  name: string;
+  flagImage: string;
+  active: boolean;
+};
+
 type Props = {
-  countries: string[];
+  countryOptions: ManualCountryOption[];
+  countryCatalogLoading: boolean;
+  countryCatalogUnavailable: boolean;
   isPending: boolean;
   onBack: () => void;
-  onSearch: (question: string) => void;
+  onSearch: (question: string, countries: string[]) => void;
 };
 
 function initialFilters(): ManualSearchFilters {
   return { ...EMPTY_MANUAL_SEARCH_FILTERS, statuses: [] };
 }
 
-export function ManualSearchPanel({ countries, isPending, onBack, onSearch }: Props) {
+export function ManualSearchPanel({
+  countryOptions,
+  countryCatalogLoading,
+  countryCatalogUnavailable,
+  isPending,
+  onBack,
+  onSearch,
+}: Props) {
+  const availableCountries = countryOptions.filter(({ active }) => active);
+  const [countries, setCountries] = useState<string[]>(() =>
+    availableCountries.map(({ code }) => code),
+  );
   const [filters, setFilters] = useState<ManualSearchFilters>(initialFilters);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [debouncedEntityName, setDebouncedEntityName] = useState("");
   const [entityFocused, setEntityFocused] = useState(false);
   const backRef = useRef<HTMLButtonElement>(null);
+  const countriesInitialized = useRef(countries.length > 0);
   const id = useId();
 
   useEffect(() => {
     backRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    if (countriesInitialized.current || availableCountries.length === 0) return;
+    setCountries(availableCountries.map(({ code }) => code));
+    countriesInitialized.current = true;
+  }, [availableCountries]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -87,6 +114,15 @@ export function ManualSearchPanel({ countries, isPending, onBack, onSearch }: Pr
     );
   };
 
+  const toggleCountry = (country: string) => {
+    setCountries((current) =>
+      current.includes(country)
+        ? current.filter((selected) => selected !== country)
+        : [...current, country],
+    );
+    setValidationError(null);
+  };
+
   const changeEntityType = (entityType: ManualEntityType) => {
     setFilters((current) => withEntityType(current, entityType));
     setValidationError(null);
@@ -105,10 +141,13 @@ export function ManualSearchPanel({ countries, isPending, onBack, onSearch }: Pr
       setValidationError(error);
       return;
     }
-    onSearch(buildManualSearchQuestion(filters, countries));
+    onSearch(buildManualSearchQuestion(filters, countries), countries);
   };
 
   const showCurrencyWarning = hasMixedCurrencyAmountRisk(filters, countries);
+  const allCountriesSelected =
+    availableCountries.length > 0 &&
+    availableCountries.every(({ code }) => countries.includes(code));
   const candidates = entitiesQuery.data ?? [];
   const showSuggestions = entityFocused && countries.length > 0 && debouncedEntityName.length >= 2;
 
@@ -132,6 +171,52 @@ export function ManualSearchPanel({ countries, isPending, onBack, onSearch }: Pr
       </div>
 
       <form className="manual-search-form" onSubmit={submit}>
+        <fieldset className="manual-fieldset manual-country-fieldset">
+          <legend>{copy.manualSearch.countryGroup}</legend>
+          {countryCatalogLoading ? (
+            <p className="manual-field-message">{copy.manualSearch.countryLoading}</p>
+          ) : countryCatalogUnavailable ? (
+            <p className="manual-field-message" role="alert">
+              {copy.manualSearch.countryUnavailable}
+            </p>
+          ) : (
+            <div className="manual-country-options">
+              <button
+                type="button"
+                className={`manual-country-chip all ${allCountriesSelected ? "selected" : ""}`}
+                aria-pressed={allCountriesSelected}
+                onClick={() => {
+                  setCountries(
+                    allCountriesSelected ? [] : availableCountries.map(({ code }) => code),
+                  );
+                  setValidationError(null);
+                }}
+              >
+                <GlobeIcon size={22} />
+                <span>{copy.countries.all}</span>
+              </button>
+              {availableCountries.map(({ code, name, flagImage }) => {
+                const selected = countries.includes(code);
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    className={`manual-country-chip ${selected ? "selected" : ""}`}
+                    aria-pressed={selected}
+                    onClick={() => toggleCountry(code)}
+                  >
+                    <img src={flagImage} alt="" aria-hidden="true" />
+                    <span>{name}</span>
+                    <span className="manual-checkbox" aria-hidden="true">
+                      {selected ? "✓" : ""}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </fieldset>
+
         <fieldset className="manual-fieldset manual-date-fieldset">
           <legend>{copy.manualSearch.dateGroup}</legend>
           <div className="manual-two-columns">

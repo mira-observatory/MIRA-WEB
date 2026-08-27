@@ -112,14 +112,12 @@ function Brand() {
 }
 
 export function App() {
-  const [selected, setSelected] = useState<string[]>([]);
   const [question, setQuestion] = useState("");
   const [notice, setNotice] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
-  const [coverageOpen, setCoverageOpen] = useState(false);
-  const [countriesOpen, setCountriesOpen] = useState(true);
-  const [coverageInitialized, setCoverageInitialized] = useState(false);
+  const [coverageOpen, setCoverageOpen] = useState(true);
   const [manualSearchOpen, setManualSearchOpen] = useState(false);
+  const [showFilterHint, setShowFilterHint] = useState(false);
   const manualSearchButtonRef = useRef<HTMLButtonElement>(null);
 
   const conversation = useAskConversation();
@@ -135,7 +133,6 @@ export function App() {
       (coverage?.countries ?? []).map((country) => {
         const code = country.country_code.toUpperCase();
         return {
-          id: code.toLowerCase(),
           code,
           name: country.country_name,
           flagImage: country.flag_asset ?? GENERIC_FLAG_ASSET,
@@ -147,30 +144,27 @@ export function App() {
     [coverage],
   );
 
-  const activeCountryIds = useMemo(
-    () => countryOptions.filter((country) => country.active).map((country) => country.id),
+  const activeCountryCodes = useMemo(
+    () => countryOptions.filter((country) => country.active).map((country) => country.code),
     [countryOptions],
   );
 
   useEffect(() => {
-    if (!coverage || coverageInitialized) return;
-    setSelected(activeCountryIds);
-    setCoverageInitialized(true);
-  }, [activeCountryIds, coverage, coverageInitialized]);
+    if (manualSearchOpen || panelOpen || question.trim()) {
+      setShowFilterHint(false);
+      return;
+    }
+    const showTimer = window.setTimeout(() => setShowFilterHint(true), 5000);
+    const hideTimer = window.setTimeout(() => setShowFilterHint(false), 12000);
+    return () => {
+      window.clearTimeout(showTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, [manualSearchOpen, panelOpen, question]);
 
-  const allActiveSelected = useMemo(
-    () => activeCountryIds.length > 0 && activeCountryIds.every((id) => selected.includes(id)),
-    [activeCountryIds, selected],
-  );
-
-  const selectedCodes = useMemo(() => selected.map((id) => id.toUpperCase()), [selected]);
-
-  const toggle = (id: string) =>
-    setSelected((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-    );
-
-  const ask = (text: string) => conversation.ask(text, selectedCodes);
+  const currentConversationCountries = conversation.turns.at(-1)?.countries ?? activeCountryCodes;
+  const askAllCountries = (text: string) => conversation.ask(text, activeCountryCodes);
+  const askFollowUp = (text: string) => conversation.ask(text, currentConversationCountries);
 
   const metricValue = (value: string) => {
     if (coverageQuery.isLoading) return copy.home.loadingCoverage;
@@ -184,13 +178,13 @@ export function App() {
       setNotice(copy.home.ask.missingQuestion);
       return;
     }
-    if (selected.length === 0) {
+    if (activeCountryCodes.length === 0) {
       setNotice(copy.home.ask.missingCountry);
       return;
     }
     setNotice("");
     setPanelOpen(true);
-    ask(question.trim());
+    askAllCountries(question.trim());
     setQuestion("");
   };
 
@@ -199,11 +193,11 @@ export function App() {
     window.requestAnimationFrame(() => manualSearchButtonRef.current?.focus());
   };
 
-  const submitManualSearch = (generatedQuestion: string) => {
+  const submitManualSearch = (generatedQuestion: string, countries: string[]) => {
     setNotice("");
     setManualSearchOpen(false);
     setPanelOpen(true);
-    ask(generatedQuestion);
+    conversation.ask(generatedQuestion, countries);
   };
 
   return (
@@ -212,23 +206,20 @@ export function App() {
         {/* 1. Header / Brand Original */}
         <Brand />
 
-        {/* 2. Selector de Países (Colapsible y en lista en móvil) */}
-        <section className="countries card" aria-label={copy.countries.selectorTitle}>
+        {/* 2. Resumen de cobertura, con el estado real de cada país */}
+        <section
+          className="metrics-card card coverage-summary"
+          aria-label={copy.home.coverageAriaLabel}
+        >
           <button
             type="button"
-            className={`countries-toggle ${countriesOpen ? "open" : ""}`}
-            onClick={() => setCountriesOpen(!countriesOpen)}
+            className={`metrics-toggle ${coverageOpen ? "open" : ""}`}
+            onClick={() => setCoverageOpen(!coverageOpen)}
           >
-            <div className="countries-toggle-title">
-              <h2>{copy.countries.selectorTitle}</h2>
-            </div>
+            <span>{copy.home.coverageAriaLabel}</span>
             <div className="toggle-meta">
-              <span className="tabular selected-badge">
-                {selected.length === activeCountryIds.length
-                  ? copy.countries.all
-                  : selected.length === 1
-                    ? "1 país seleccionado"
-                    : `${selected.length} países seleccionados`}
+              <span className="tabular">
+                {metricValue(`${formatCount(coverageSummary?.process_count)} procesos cargados`)}
               </span>
               <span className="toggle-chevron" aria-hidden="true">
                 ▼
@@ -236,68 +227,144 @@ export function App() {
             </div>
           </button>
 
-          <div className={`countries-content ${countriesOpen ? "open" : ""}`}>
-            <div className="country-grid">
-              {countryOptions.map((country) => (
-                <button
-                  key={country.id}
-                  disabled={!country.active}
-                  onClick={() => toggle(country.id)}
-                  className={`country ${selected.includes(country.id) ? "selected" : ""}`}
-                >
-                  <span className="checkbox" aria-hidden="true">
-                    {selected.includes(country.id) ? "✓" : ""}
-                  </span>
-                  <img
-                    className="flag"
-                    src={country.flagImage}
-                    alt=""
-                    aria-hidden="true"
-                    onError={(event) => {
-                      if (event.currentTarget.src.endsWith(GENERIC_FLAG_ASSET)) return;
-                      event.currentTarget.src = GENERIC_FLAG_ASSET;
-                    }}
-                  />
-                  <div className="country-info">
-                    <span className="country-name">{country.name}</span>
-                    {country.active ? (
-                      <small className="country-count tabular">
-                        {copy.countries.processCount.replace(
-                          "{n}",
-                          formatCount(country.processCount),
-                        )}
-                      </small>
-                    ) : (
-                      <small className="country-count">{copy.countries.soon}</small>
-                    )}
+          {coverageOpen && (
+            <div className="coverage-details">
+              <div className="coverage-countries">
+                <h2>{copy.home.metrics.countries.detailTitle}</h2>
+                {coverageQuery.isLoading ? (
+                  <p className="coverage-country-message">{copy.home.loadingCoverage}</p>
+                ) : coverageQuery.isError ? (
+                  <p className="coverage-country-message" role="alert">
+                    {copy.home.unavailableCoverage}
+                  </p>
+                ) : (
+                  <div className="country-grid coverage-country-grid">
+                    {countryOptions.map((country) => (
+                      <article
+                        key={country.code}
+                        className={`country coverage-country ${country.status.toLowerCase()}`}
+                      >
+                        <img
+                          className="flag"
+                          src={country.flagImage}
+                          alt=""
+                          aria-hidden="true"
+                          onError={(event) => {
+                            if (event.currentTarget.src.endsWith(GENERIC_FLAG_ASSET)) return;
+                            event.currentTarget.src = GENERIC_FLAG_ASSET;
+                          }}
+                        />
+                        <div className="country-info">
+                          <span className="country-name">{country.name}</span>
+                          {country.active ? (
+                            <small className="country-count tabular">
+                              {copy.countries.processCount.replace(
+                                "{n}",
+                                formatCount(country.processCount),
+                              )}
+                            </small>
+                          ) : (
+                            <small className="country-count">{copy.countries.soon}</small>
+                          )}
+                        </div>
+                        <span className={`coverage-status ${country.status.toLowerCase()}`}>
+                          {country.status === "ACTIVE"
+                            ? copy.home.metrics.countries.withData
+                            : country.status === "PLANNED"
+                              ? copy.home.metrics.countries.soonStatus
+                              : copy.home.metrics.countries.inactiveStatus}
+                        </span>
+                      </article>
+                    ))}
                   </div>
-                </button>
-              ))}
-              <button
-                className={`country all ${allActiveSelected ? "selected" : ""}`}
-                onClick={() => setSelected(allActiveSelected ? [] : activeCountryIds)}
-                disabled={activeCountryIds.length === 0}
-              >
-                <span className="checkbox" aria-hidden="true">
-                  {allActiveSelected ? "✓" : ""}
-                </span>
-                <GlobeIcon className="icon" size={24} />
-                <div className="country-info">
-                  <span className="country-name">{copy.countries.all}</span>
-                  <small className="country-count tabular">
-                    {`${activeCountryIds.length} países activos`}
-                  </small>
+                )}
+              </div>
+
+              <div className="metrics collapsible">
+                <div className="metric">
+                  <GlobeIcon className="icon" size={38} />
+                  <div>
+                    <small>{copy.home.metrics.countries.label}</small>
+                    <strong className="tabular">
+                      {metricValue(
+                        `${formatCount(coverageSummary?.active_countries)} ${copy.home.metrics.countries.activeSuffix}`,
+                      )}
+                    </strong>
+                    <span>
+                      {metricValue(
+                        `${formatCount(coverageSummary?.planned_countries)} ${copy.home.metrics.countries.soonSuffix}`,
+                      )}
+                    </span>
+                  </div>
                 </div>
-              </button>
+                <div className="metric">
+                  <CalendarIcon className="icon" size={38} />
+                  <div>
+                    <small>{copy.home.metrics.coverage.label}</small>
+                    <strong className="tabular">
+                      {metricValue(
+                        formatCoverageRange(
+                          coverageSummary?.coverage_from,
+                          coverageSummary?.coverage_to,
+                        ),
+                      )}
+                    </strong>
+                    <span>{copy.home.metrics.coverage.caption}</span>
+                  </div>
+                </div>
+                <div className="metric">
+                  <RefreshIcon className="icon" size={38} />
+                  <div>
+                    <small>{copy.home.metrics.updatedAt.label}</small>
+                    <strong className="tabular">
+                      {metricValue(formatCoverageDate(coverageSummary?.last_successful_load_at))}
+                    </strong>
+                    <span className="tabular">
+                      {metricValue(formatCoverageTime(coverageSummary?.last_successful_load_at))}
+                    </span>
+                  </div>
+                </div>
+                <div className="metric">
+                  <DatabaseIcon className="icon" size={38} />
+                  <div>
+                    <small>{copy.home.metrics.records.label}</small>
+                    <strong className="tabular">
+                      {metricValue(formatCount(coverageSummary?.process_count))}
+                    </strong>
+                    <span>{copy.home.metrics.records.caption}</span>
+                  </div>
+                </div>
+                <div className="metric">
+                  <DocumentIcon className="icon" size={38} />
+                  <div>
+                    <small>{copy.home.metrics.sources.label}</small>
+                    <strong className="tabular">
+                      {metricValue(formatCount(coverageSummary?.active_sources))}
+                    </strong>
+                    <span>
+                      {metricValue(
+                        coverageSummary?.active_countries === 1
+                          ? copy.home.metrics.sources.captionOne
+                          : copy.home.metrics.sources.captionMany.replace(
+                              "{n}",
+                              formatCount(coverageSummary?.active_countries),
+                            ),
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* 3. Área de Pregunta y Búsqueda Original */}
         <section className={`ask card ${manualSearchOpen ? "manual-search-active" : ""}`}>
           {manualSearchOpen ? (
             <ManualSearchPanel
-              countries={selectedCodes}
+              countryOptions={countryOptions}
+              countryCatalogLoading={coverageQuery.isLoading}
+              countryCatalogUnavailable={coverageQuery.isError}
               isPending={conversation.isPending}
               onBack={closeManualSearch}
               onSearch={submitManualSearch}
@@ -320,16 +387,26 @@ export function App() {
                   placeholder={copy.home.ask.placeholder}
                 />
                 <div className="search-actions">
-                  <button
-                    ref={manualSearchButtonRef}
-                    type="button"
-                    className="manual-search-open-button"
-                    onClick={() => setManualSearchOpen(true)}
-                    aria-label={copy.home.ask.manualSearch}
-                    title={copy.home.ask.manualSearch}
-                  >
-                    <FilterIcon size={20} />
-                  </button>
+                  <span className="manual-search-trigger">
+                    {showFilterHint && (
+                      <span className="manual-search-hint" role="status">
+                        {copy.home.ask.filterHint}
+                      </span>
+                    )}
+                    <button
+                      ref={manualSearchButtonRef}
+                      type="button"
+                      className="manual-search-open-button"
+                      onClick={() => {
+                        setShowFilterHint(false);
+                        setManualSearchOpen(true);
+                      }}
+                      aria-label={copy.home.ask.manualSearch}
+                      title={copy.home.ask.manualSearch}
+                    >
+                      <FilterIcon size={20} />
+                    </button>
+                  </span>
                   {question.trim().length > 0 && (
                     <button
                       type="submit"
@@ -360,9 +437,11 @@ export function App() {
                     onClick={() => {
                       setQuestion(example.text);
                       setNotice("");
-                      if (selected.length > 0) {
+                      if (activeCountryCodes.length > 0) {
                         setPanelOpen(true);
-                        ask(example.text);
+                        askAllCountries(example.text);
+                      } else {
+                        setNotice(copy.home.ask.missingCountry);
                       }
                     }}
                     className="example"
@@ -390,102 +469,6 @@ export function App() {
             {copy.home.catalog.action}
             <ArrowRightIcon size={18} />
           </Link>
-        </section>
-
-        {/* 4. Métricas / Cobertura Abatible (Collapsible) */}
-        <section className="metrics-card card" aria-label={copy.home.coverageAriaLabel}>
-          <button
-            type="button"
-            className={`metrics-toggle ${coverageOpen ? "open" : ""}`}
-            onClick={() => setCoverageOpen(!coverageOpen)}
-          >
-            <span>{copy.home.coverageAriaLabel}</span>
-            <div className="toggle-meta">
-              <span className="tabular">
-                {metricValue(`${formatCount(coverageSummary?.process_count)} procesos cargados`)}
-              </span>
-              <span className="toggle-chevron" aria-hidden="true">
-                ▼
-              </span>
-            </div>
-          </button>
-
-          {coverageOpen && (
-            <div className="metrics collapsible">
-              <div className="metric">
-                <GlobeIcon className="icon" size={38} />
-                <div>
-                  <small>{copy.home.metrics.countries.label}</small>
-                  <strong className="tabular">
-                    {metricValue(
-                      `${formatCount(coverageSummary?.active_countries)} ${copy.home.metrics.countries.activeSuffix}`,
-                    )}
-                  </strong>
-                  <span>
-                    {metricValue(
-                      `${formatCount(coverageSummary?.planned_countries)} ${copy.home.metrics.countries.soonSuffix}`,
-                    )}
-                  </span>
-                </div>
-              </div>
-              <div className="metric">
-                <CalendarIcon className="icon" size={38} />
-                <div>
-                  <small>{copy.home.metrics.coverage.label}</small>
-                  <strong className="tabular">
-                    {metricValue(
-                      formatCoverageRange(
-                        coverageSummary?.coverage_from,
-                        coverageSummary?.coverage_to,
-                      ),
-                    )}
-                  </strong>
-                  <span>{copy.home.metrics.coverage.caption}</span>
-                </div>
-              </div>
-              <div className="metric">
-                <RefreshIcon className="icon" size={38} />
-                <div>
-                  <small>{copy.home.metrics.updatedAt.label}</small>
-                  <strong className="tabular">
-                    {metricValue(formatCoverageDate(coverageSummary?.last_successful_load_at))}
-                  </strong>
-                  <span className="tabular">
-                    {metricValue(formatCoverageTime(coverageSummary?.last_successful_load_at))}
-                  </span>
-                </div>
-              </div>
-              <div className="metric">
-                <DatabaseIcon className="icon" size={38} />
-                <div>
-                  <small>{copy.home.metrics.records.label}</small>
-                  <strong className="tabular">
-                    {metricValue(formatCount(coverageSummary?.process_count))}
-                  </strong>
-                  <span>{copy.home.metrics.records.caption}</span>
-                </div>
-              </div>
-              <div className="metric">
-                <DocumentIcon className="icon" size={38} />
-                <div>
-                  <small>{copy.home.metrics.sources.label}</small>
-                  <strong className="tabular">
-                    {metricValue(formatCount(coverageSummary?.active_sources))}
-                  </strong>
-                  <span>
-                    {metricValue(
-                      coverageSummary?.active_countries === 1
-                        ? copy.home.metrics.sources.captionOne
-                        : copy.home.metrics.sources.captionMany.replace(
-                            "{n}",
-                            formatCount(coverageSummary?.active_countries),
-                          ),
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
         </section>
       </main>
 
@@ -515,9 +498,9 @@ export function App() {
         open={panelOpen}
         onClose={() => setPanelOpen(false)}
         turns={conversation.turns}
-        countries={selectedCodes}
+        countries={currentConversationCountries}
         isPending={conversation.isPending}
-        onAsk={ask}
+        onAsk={askFollowUp}
       />
     </div>
   );

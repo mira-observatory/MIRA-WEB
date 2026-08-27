@@ -10,14 +10,6 @@ import { fetchProcedures, fetchProcessStatuses, type ProcedureQuery } from "./ap
 
 const PAGE_SIZE = 25;
 const DATE_FORMAT = new Intl.DateTimeFormat("es", { dateStyle: "medium" });
-const FALLBACK_COUNTRIES = [
-  ["GT", "Guatemala"],
-  ["HN", "Honduras"],
-  ["CR", "Costa Rica"],
-  ["NI", "Nicaragua"],
-  ["SV", "El Salvador"],
-  ["PA", "Panamá"],
-] as const;
 
 type Filters = {
   q: string;
@@ -93,13 +85,9 @@ export function ProceduresPage() {
     queryFn: fetchProcessStatuses,
     staleTime: 10 * 60 * 1000,
   });
-  const countryOptions = coverage.data
-    ? (coverage.data.countries ?? [])
-        .filter(({ status }) => status === "ACTIVE")
-        .map(({ country_code, country_name }) => [country_code, country_name] as const)
-    : coverage.isError
-      ? FALLBACK_COUNTRIES
-      : [];
+  const countryOptions = (coverage.data?.countries ?? [])
+    .filter(({ status }) => status === "ACTIVE")
+    .map(({ country_code, country_name }) => [country_code, country_name] as const);
 
   const query = useMemo<ProcedureQuery>(() => {
     const cleanQ = applied.q.trim();
@@ -186,9 +174,16 @@ export function ProceduresPage() {
             <span>País</span>
             <select
               value={draft.country}
+              disabled={coverage.isLoading || coverage.isError}
               onChange={(event) => setDraft({ ...draft, country: event.target.value })}
             >
-              <option value="">Todos los países</option>
+              <option value="">
+                {coverage.isLoading
+                  ? "Cargando países…"
+                  : coverage.isError
+                    ? "Países no disponibles"
+                    : "Todos los países"}
+              </option>
               {countryOptions.map(([code, name]) => (
                 <option key={code} value={code}>
                   {name}
