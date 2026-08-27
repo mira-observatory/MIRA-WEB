@@ -1,18 +1,6 @@
 import { copy } from "../../i18n/copy";
 
-export const MANUAL_SEARCH_STATUSES = [
-  "OPEN",
-  "AWARDED",
-  "CONTRACTED",
-  "EVALUATION",
-  "COMPLETED",
-  "DESERTED",
-  "CANCELLED",
-  "PLANNED",
-  "PUBLISHED",
-] as const;
-
-export type ManualSearchStatus = (typeof MANUAL_SEARCH_STATUSES)[number];
+export type ManualSearchStatus = string;
 export type ManualEntityType = "buyer" | "supplier";
 
 export type ManualSearchFilters = {
@@ -63,8 +51,7 @@ function compactUserText(value: string, maxLength: number): string {
 }
 
 function orderedStatuses(statuses: ManualSearchStatus[]): ManualSearchStatus[] {
-  const selected = new Set(statuses);
-  return MANUAL_SEARCH_STATUSES.filter((status) => selected.has(status));
+  return [...new Set(statuses)].sort();
 }
 
 export function buildManualSearchQuestion(

@@ -6,22 +6,9 @@ import { CalendarIcon, DocumentIcon, SearchIcon } from "../../components/icons";
 import { MiraLogo } from "../../components/icons/MiraLogo";
 import { formatCount } from "../../lib/format";
 import { fetchCoverage } from "../coverage/api";
-import { fetchProcedures, type Procedure, type ProcedureQuery, type ProcedureStatus } from "./api";
+import { fetchProcedures, fetchProcessStatuses, type ProcedureQuery } from "./api";
 
 const PAGE_SIZE = 25;
-const STATUSES: ReadonlyArray<{ value: ProcedureStatus; label: string }> = [
-  { value: "PLANNED", label: "Planificado" },
-  { value: "PUBLISHED", label: "Publicado" },
-  { value: "OPEN", label: "Abierto" },
-  { value: "EVALUATION", label: "En evaluación" },
-  { value: "AWARDED", label: "Adjudicado" },
-  { value: "CONTRACTED", label: "Contratado" },
-  { value: "COMPLETED", label: "Completado" },
-  { value: "CANCELLED", label: "Cancelado" },
-  { value: "DESERTED", label: "Desierto" },
-  { value: "SUSPENDED", label: "Suspendido" },
-];
-const STATUS_VALUES = new Set<ProcedureStatus>(STATUSES.map(({ value }) => value));
 const DATE_FORMAT = new Intl.DateTimeFormat("es", { dateStyle: "medium" });
 const FALLBACK_COUNTRIES = [
   ["GT", "Guatemala"],
@@ -52,10 +39,6 @@ function readFilters(params: URLSearchParams): Filters {
   };
 }
 
-function statusLabel(status: Procedure["process_status"]) {
-  return STATUSES.find(({ value }) => value === status)?.label ?? "Sin estado";
-}
-
 function formatDate(value: string | null | undefined) {
   return value ? DATE_FORMAT.format(new Date(value)) : "Sin fecha";
 }
@@ -84,6 +67,11 @@ function safeUrl(value: string | null | undefined) {
   }
 }
 
+function statusClass(status: string | null | undefined) {
+  const suffix = (status ?? "unknown").toLowerCase().replace(/[^a-z0-9_-]/g, "");
+  return `status-badge status-${suffix || "unknown"}`;
+}
+
 export function ProceduresPage() {
   const [params, setParams] = useSearchParams();
   const applied = useMemo(() => readFilters(params), [params]);
@@ -100,6 +88,11 @@ export function ProceduresPage() {
   }, []);
 
   const coverage = useQuery({ queryKey: ["coverage"], queryFn: fetchCoverage });
+  const statuses = useQuery({
+    queryKey: ["process-statuses"],
+    queryFn: fetchProcessStatuses,
+    staleTime: 10 * 60 * 1000,
+  });
   const countryOptions = coverage.data
     ? (coverage.data.countries ?? [])
         .filter(({ status }) => status === "ACTIVE")
@@ -110,13 +103,10 @@ export function ProceduresPage() {
 
   const query = useMemo<ProcedureQuery>(() => {
     const cleanQ = applied.q.trim();
-    const status = STATUS_VALUES.has(applied.status as ProcedureStatus)
-      ? ([applied.status] as ProcedureStatus[])
-      : undefined;
     return {
       q: cleanQ.length >= 2 ? cleanQ : undefined,
       country: /^[a-z]{2}$/i.test(applied.country) ? [applied.country.toUpperCase()] : undefined,
-      status,
+      status: applied.status ? [applied.status] : undefined,
       procurement_method: applied.method.trim() ? [applied.method.trim()] : undefined,
       published_from: applied.from || undefined,
       published_to: applied.to || undefined,
@@ -212,10 +202,16 @@ export function ProceduresPage() {
               value={draft.status}
               onChange={(event) => setDraft({ ...draft, status: event.target.value })}
             >
-              <option value="">Todos los estados</option>
-              {STATUSES.map(({ value, label }) => (
+              <option value="">
+                {statuses.isLoading
+                  ? "Cargando estados…"
+                  : statuses.isError
+                    ? "Estados no disponibles"
+                    : "Todos los estados"}
+              </option>
+              {(statuses.data?.statuses ?? []).map(({ value, process_count }) => (
                 <option key={value} value={value}>
-                  {label}
+                  {value} ({formatCount(process_count)})
                 </option>
               ))}
             </select>
@@ -315,10 +311,8 @@ export function ProceduresPage() {
                           <b className="country-code tabular">{procedure.country_code}</b>
                         </td>
                         <td data-label="Estado">
-                          <b
-                            className={`status-badge status-${procedure.process_status?.toLowerCase() ?? "unknown"}`}
-                          >
-                            {statusLabel(procedure.process_status)}
+                          <b className={statusClass(procedure.process_status)}>
+                            {procedure.process_status ?? "Sin estado"}
                           </b>
                         </td>
                         <td data-label="Publicación">

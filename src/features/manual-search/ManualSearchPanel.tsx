@@ -4,12 +4,12 @@ import { FormEvent, FocusEvent, useEffect, useId, useRef, useState } from "react
 import { ArrowLeftIcon, SearchIcon, ShieldIcon } from "../../components/icons";
 import { copy } from "../../i18n/copy";
 import { formatCount } from "../../lib/format";
+import { fetchProcessStatuses } from "../procedures/api";
 import { resolveEntities } from "./api";
 import {
   buildManualSearchQuestion,
   EMPTY_MANUAL_SEARCH_FILTERS,
   hasMixedCurrencyAmountRisk,
-  MANUAL_SEARCH_STATUSES,
   type ManualEntityType,
   type ManualSearchFilters,
   type ManualSearchStatus,
@@ -62,6 +62,11 @@ export function ManualSearchPanel({ countries, isPending, onBack, onSearch }: Pr
         countries,
       }),
     enabled: countries.length > 0 && debouncedEntityName.length >= 2,
+    staleTime: 10 * 60 * 1000,
+  });
+  const statusesQuery = useQuery({
+    queryKey: ["process-statuses"],
+    queryFn: fetchProcessStatuses,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -156,23 +161,32 @@ export function ManualSearchPanel({ countries, isPending, onBack, onSearch }: Pr
         <fieldset className="manual-fieldset manual-status-fieldset">
           <legend>{copy.manualSearch.statusGroup}</legend>
           <div className="manual-status-options">
-            {MANUAL_SEARCH_STATUSES.map((status) => {
-              const selected = filters.statuses.includes(status);
-              return (
-                <button
-                  key={status}
-                  type="button"
-                  className={`manual-status-chip ${selected ? "selected" : ""}`}
-                  aria-pressed={selected}
-                  onClick={() => toggleStatus(status)}
-                >
-                  <span className="manual-checkbox" aria-hidden="true">
-                    {selected ? "✓" : ""}
-                  </span>
-                  {copy.manualSearch.statuses[status]}
-                </button>
-              );
-            })}
+            {statusesQuery.isLoading ? (
+              <p>{copy.manualSearch.statusLoading}</p>
+            ) : statusesQuery.isError ? (
+              <p role="alert">{copy.manualSearch.statusUnavailable}</p>
+            ) : (statusesQuery.data?.statuses ?? []).length === 0 ? (
+              <p>{copy.manualSearch.statusEmpty}</p>
+            ) : (
+              (statusesQuery.data?.statuses ?? []).map(({ value, process_count }) => {
+                const selected = filters.statuses.includes(value);
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`manual-status-chip ${selected ? "selected" : ""}`}
+                    aria-pressed={selected}
+                    onClick={() => toggleStatus(value)}
+                  >
+                    <span className="manual-checkbox" aria-hidden="true">
+                      {selected ? "✓" : ""}
+                    </span>
+                    {value}
+                    <small className="tabular">{formatCount(process_count)}</small>
+                  </button>
+                );
+              })
+            )}
           </div>
         </fieldset>
 

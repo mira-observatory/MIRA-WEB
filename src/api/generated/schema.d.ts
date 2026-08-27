@@ -24,6 +24,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/procedures/statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Process Statuses
+         * @description Estados normalizados que existen actualmente, con su conteo real.
+         */
+        get: operations["get_process_statuses_procedures_statuses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/procedures": {
         parameters: {
             query?: never;
@@ -352,7 +372,7 @@ export interface components {
             /** Procurement Method */
             procurement_method?: string | null;
             /** Process Status */
-            process_status?: ("PLANNED" | "PUBLISHED" | "OPEN" | "EVALUATION" | "AWARDED" | "CONTRACTED" | "COMPLETED" | "CANCELLED" | "DESERTED" | "SUSPENDED") | null;
+            process_status?: string | null;
             /** Source Status */
             source_status?: string | null;
             /** Publication Date */
@@ -380,7 +400,7 @@ export interface components {
             /** Countries */
             countries?: string[];
             /** Statuses */
-            statuses?: ("PLANNED" | "PUBLISHED" | "OPEN" | "EVALUATION" | "AWARDED" | "CONTRACTED" | "COMPLETED" | "CANCELLED" | "DESERTED" | "SUSPENDED")[];
+            statuses?: string[];
             /** Procurement Methods */
             procurement_methods?: string[];
             /** Published From */
@@ -401,6 +421,18 @@ export interface components {
             /** Total Pages */
             total_pages: number;
             filters: components["schemas"]["ProcedureFilters"];
+        };
+        /** ProcessStatusOption */
+        ProcessStatusOption: {
+            /** Value */
+            value: string;
+            /** Process Count */
+            process_count: number;
+        };
+        /** ProcessStatusesResponse */
+        ProcessStatusesResponse: {
+            /** Statuses */
+            statuses?: components["schemas"]["ProcessStatusOption"][];
         };
         /** QueryRequest */
         QueryRequest: {
@@ -589,12 +621,32 @@ export interface operations {
             };
         };
     };
+    get_process_statuses_procedures_statuses_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProcessStatusesResponse"];
+                };
+            };
+        };
+    };
     get_procedures_procedures_get: {
         parameters: {
             query?: {
                 q?: string | null;
                 country?: string[] | null;
-                status?: ("PLANNED" | "PUBLISHED" | "OPEN" | "EVALUATION" | "AWARDED" | "CONTRACTED" | "COMPLETED" | "CANCELLED" | "DESERTED" | "SUSPENDED")[] | null;
+                status?: string[] | null;
                 procurement_method?: string[] | null;
                 published_from?: string | null;
                 published_to?: string | null;

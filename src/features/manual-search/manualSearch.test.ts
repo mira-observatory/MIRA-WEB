@@ -30,7 +30,7 @@ describe("buildManualSearchQuestion", () => {
     );
 
     expect(question).toBe(
-      'Busca procesos de contratación en Guatemala y Costa Rica; publicados entre 2026-01-01 y 2026-03-31; con estados normalizados OPEN y AWARDED; cuya modalidad de contratación contenga "Compra Directa"; del comprador llamado "Ministerio de \'Salud\'"; con monto registrado entre 1000 y 5000; en la moneda reportada por cada país, sin convertir ni sumar monedas.',
+      'Busca procesos de contratación en Guatemala y Costa Rica; publicados entre 2026-01-01 y 2026-03-31; con estados normalizados AWARDED y OPEN; cuya modalidad de contratación contenga "Compra Directa"; del comprador llamado "Ministerio de \'Salud\'"; con monto registrado entre 1000 y 5000; en la moneda reportada por cada país, sin convertir ni sumar monedas.',
     );
   });
 
