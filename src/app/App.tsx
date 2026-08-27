@@ -1,10 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
+  ArrowRightIcon,
   BuildingIcon,
   CalendarIcon,
   DatabaseIcon,
   DocumentIcon,
+  FilterIcon,
   GlobeIcon,
   HandshakeIcon,
   MonitorIcon,
@@ -19,6 +22,7 @@ import { MiraLogo } from "../components/icons/MiraLogo";
 import { AskPanel } from "../features/ask/AskPanel";
 import { useAskConversation } from "../features/ask/useAskConversation";
 import { fetchCoverage } from "../features/coverage/api";
+import { ManualSearchPanel } from "../features/manual-search/ManualSearchPanel";
 import { copy } from "../i18n/copy";
 import { formatCount } from "../lib/format";
 
@@ -115,6 +119,8 @@ export function App() {
   const [coverageOpen, setCoverageOpen] = useState(false);
   const [countriesOpen, setCountriesOpen] = useState(true);
   const [coverageInitialized, setCoverageInitialized] = useState(false);
+  const [manualSearchOpen, setManualSearchOpen] = useState(false);
+  const manualSearchButtonRef = useRef<HTMLButtonElement>(null);
 
   const conversation = useAskConversation();
   const coverageQuery = useQuery({
@@ -188,6 +194,18 @@ export function App() {
     setQuestion("");
   };
 
+  const closeManualSearch = () => {
+    setManualSearchOpen(false);
+    window.requestAnimationFrame(() => manualSearchButtonRef.current?.focus());
+  };
+
+  const submitManualSearch = (generatedQuestion: string) => {
+    setNotice("");
+    setManualSearchOpen(false);
+    setPanelOpen(true);
+    ask(generatedQuestion);
+  };
+
   return (
     <div className="site-shell">
       <main className="page">
@@ -209,8 +227,8 @@ export function App() {
                 {selected.length === activeCountryIds.length
                   ? copy.countries.all
                   : selected.length === 1
-                  ? "1 país seleccionado"
-                  : `${selected.length} países seleccionados`}
+                    ? "1 país seleccionado"
+                    : `${selected.length} países seleccionados`}
               </span>
               <span className="toggle-chevron" aria-hidden="true">
                 ▼
@@ -276,65 +294,102 @@ export function App() {
         </section>
 
         {/* 3. Área de Pregunta y Búsqueda Original */}
-        <section className="ask card">
-          <div className="ask-heading">
-            <h2>{copy.home.ask.title}</h2>
-            <p>{copy.home.ask.description}</p>
-          </div>
-          <form className="search-box" onSubmit={submit}>
-            <SearchIcon className="icon" size={30} />
-            <input
-              value={question}
-              onChange={(e) => {
-                setQuestion(e.target.value);
-                setNotice("");
-              }}
-              aria-label={copy.home.ask.inputLabel}
-              placeholder={copy.home.ask.placeholder}
+        <section className={`ask card ${manualSearchOpen ? "manual-search-active" : ""}`}>
+          {manualSearchOpen ? (
+            <ManualSearchPanel
+              countries={selectedCodes}
+              isPending={conversation.isPending}
+              onBack={closeManualSearch}
+              onSearch={submitManualSearch}
             />
-            {question.trim().length > 0 && (
-              <button
-                type="submit"
-                aria-label={copy.home.ask.submit}
-                title={copy.home.ask.submit}
-              >
-                <ArrowUpIcon size={20} />
-              </button>
-            )}
-          </form>
-          <div className="trust-row">
-            <p>
-              <ShieldIcon className="icon" size={20} />
-              {copy.home.ask.trust}
-            </p>
-          </div>
-          {notice && (
-            <p className="notice" role="status">
-              {notice}
-            </p>
+          ) : (
+            <>
+              <div className="ask-heading">
+                <h2>{copy.home.ask.title}</h2>
+                <p>{copy.home.ask.description}</p>
+              </div>
+              <form className="search-box" onSubmit={submit}>
+                <SearchIcon className="icon" size={30} />
+                <input
+                  value={question}
+                  onChange={(e) => {
+                    setQuestion(e.target.value);
+                    setNotice("");
+                  }}
+                  aria-label={copy.home.ask.inputLabel}
+                  placeholder={copy.home.ask.placeholder}
+                />
+                <div className="search-actions">
+                  <button
+                    ref={manualSearchButtonRef}
+                    type="button"
+                    className="manual-search-open-button"
+                    onClick={() => setManualSearchOpen(true)}
+                    aria-label={copy.home.ask.manualSearch}
+                    title={copy.home.ask.manualSearch}
+                  >
+                    <FilterIcon size={20} />
+                  </button>
+                  {question.trim().length > 0 && (
+                    <button
+                      type="submit"
+                      aria-label={copy.home.ask.submit}
+                      title={copy.home.ask.submit}
+                    >
+                      <ArrowUpIcon size={20} />
+                    </button>
+                  )}
+                </div>
+              </form>
+              <div className="trust-row">
+                <p>
+                  <ShieldIcon className="icon" size={20} />
+                  {copy.home.ask.trust}
+                </p>
+              </div>
+              {notice && (
+                <p className="notice" role="status">
+                  {notice}
+                </p>
+              )}
+              <h3 id="examples">{copy.home.ask.examplesTitle}</h3>
+              <div className="examples">
+                {examples.map((example) => (
+                  <button
+                    key={example.text}
+                    onClick={() => {
+                      setQuestion(example.text);
+                      setNotice("");
+                      if (selected.length > 0) {
+                        setPanelOpen(true);
+                        ask(example.text);
+                      }
+                    }}
+                    className="example"
+                  >
+                    <span className="example-icon">
+                      <example.Icon className="icon" size={30} />
+                    </span>
+                    <span>{example.text}</span>
+                  </button>
+                ))}
+              </div>
+            </>
           )}
-          <h3 id="examples">{copy.home.ask.examplesTitle}</h3>
-          <div className="examples">
-            {examples.map((example) => (
-              <button
-                key={example.text}
-                onClick={() => {
-                  setQuestion(example.text);
-                  setNotice("");
-                  if (selected.length > 0) {
-                    setPanelOpen(true);
-                    ask(example.text);
-                  }
-                }}
-                className="example"
-              >
-                <span className="example-icon">
-                  <example.Icon className="icon" size={30} />
-                </span>
-                <span>{example.text}</span>
-              </button>
-            ))}
+        </section>
+
+        <section className="procedure-access card">
+          <div className="procedure-access-icon">
+            <DocumentIcon size={30} />
           </div>
+          <div>
+            <h2>{copy.home.catalog.title}</h2>
+            <p>{copy.home.catalog.description}</p>
+          </div>
+          <Link to="/procedimientos">
+            {copy.home.catalog.action}
+            <ArrowRightIcon size={18} />
+          </Link>
         </section>
 
         {/* 4. Métricas / Cobertura Abatible (Collapsible) */}

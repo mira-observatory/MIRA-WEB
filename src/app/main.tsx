@@ -1,9 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import "../styles/index.css";
 import { copy } from "../i18n/copy";
+import { ProceduresPage } from "../features/procedures/ProceduresPage";
 import { App } from "./App";
 
 // Los datos solo cambian cuando corre el ETL, asi que no tiene sentido refetch
@@ -29,7 +31,13 @@ document
 createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<App />} />
+          <Route path="/procedimientos" element={<ProceduresPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,
 );

@@ -70,6 +70,16 @@ export const SearchIcon = (props: IconProps) => (
     <path d="M14.954 14.946 21 21m-4-11a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
   </LineIcon>
 );
+export const FilterIcon = (props: IconProps) => (
+  <LineIcon {...props} strokeWidth={2}>
+    <path d="M4 6h16M7 12h10M10 18h4" />
+  </LineIcon>
+);
+export const ArrowLeftIcon = (props: IconProps) => (
+  <LineIcon {...props} strokeWidth={2}>
+    <path d="m15 18-6-6 6-6" />
+  </LineIcon>
+);
 export const SendIcon = (props: IconProps) => (
   <LineIcon {...props} strokeWidth={2}>
     <path d="m10.301 13.695 9.801-9.798m-9.522 10.239 2.222 4.444c.537 1.075.806 1.612 1.144 1.756.293.125.629.102.903-.061.316-.188.51-.757.898-1.893l4.199-12.298c.339-.99.508-1.485.392-1.813a1 1 0 0 0-.61-.609c-.327-.116-.823.053-1.813.391L5.618 8.253c-1.137.387-1.705.581-1.893.897a1 1 0 0 0-.061.904c.144.338.681.606 1.755 1.144l4.445 2.222c.177.088.265.133.342.192a1 1 0 0 1 .182.181c.059.077.103.166.192.343Z" />

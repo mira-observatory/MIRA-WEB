@@ -24,6 +24,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/procedures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Procedures
+         * @description Lista y filtra procedimientos con SQL fijo, sin consumir IA.
+         */
+        get: operations["get_procedures_procedures_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -317,6 +337,71 @@ export interface components {
          * @enum {string}
          */
         Outcome: "OK" | "OK_ZERO_ROWS" | "OK_DEGRADED_NARRATIVE" | "OUT_OF_SCOPE" | "REJECTED_ENTITY_NOT_FOUND" | "REJECTED_ENTITY_AMBIGUOUS" | "REJECTED_SQL_PARSE" | "REJECTED_SQL_NOT_SELECT" | "REJECTED_SQL_RELATION" | "REJECTED_SQL_FUNCTION" | "REJECTED_SQL_COST" | "REJECTED_SQL_COUNTRY_SCOPE" | "FAILED_DB_TIMEOUT" | "FAILED_DB_ERROR" | "FAILED_LLM_ERROR" | "THROTTLED_QUOTA" | "THROTTLED_BUDGET";
+        /** Procedure */
+        Procedure: {
+            /** Process Id */
+            process_id: string;
+            /** Process Number */
+            process_number?: string | null;
+            /** Country Code */
+            country_code: string;
+            /** Title */
+            title?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Procurement Method */
+            procurement_method?: string | null;
+            /** Process Status */
+            process_status?: ("PLANNED" | "PUBLISHED" | "OPEN" | "EVALUATION" | "AWARDED" | "CONTRACTED" | "COMPLETED" | "CANCELLED" | "DESERTED" | "SUSPENDED") | null;
+            /** Source Status */
+            source_status?: string | null;
+            /** Publication Date */
+            publication_date?: string | null;
+            /** Closing Date */
+            closing_date?: string | null;
+            /** Estimated Amount */
+            estimated_amount?: string | null;
+            /** Currency Code */
+            currency_code?: string | null;
+            /** Source System */
+            source_system: string;
+            /** Source Url */
+            source_url?: string | null;
+            /**
+             * Data Quality Status
+             * @enum {string}
+             */
+            data_quality_status: "COMPLETE" | "PARTIAL" | "INVALID";
+        };
+        /** ProcedureFilters */
+        ProcedureFilters: {
+            /** Q */
+            q?: string | null;
+            /** Countries */
+            countries?: string[];
+            /** Statuses */
+            statuses?: ("PLANNED" | "PUBLISHED" | "OPEN" | "EVALUATION" | "AWARDED" | "CONTRACTED" | "COMPLETED" | "CANCELLED" | "DESERTED" | "SUSPENDED")[];
+            /** Procurement Methods */
+            procurement_methods?: string[];
+            /** Published From */
+            published_from?: string | null;
+            /** Published To */
+            published_to?: string | null;
+        };
+        /** ProceduresResponse */
+        ProceduresResponse: {
+            /** Items */
+            items?: components["schemas"]["Procedure"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total Pages */
+            total_pages: number;
+            filters: components["schemas"]["ProcedureFilters"];
+        };
         /** QueryRequest */
         QueryRequest: {
             /** Question */
@@ -462,7 +547,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "PARTIAL_COVERAGE" | "MIXED_CURRENCY" | "TRUNCATED_RESULT" | "NULL_AMOUNTS_EXCLUDED" | "NO_DATA_FOR_PERIOD" | "UNNORMALISED_ITEM_TEXT";
+            code: "PARTIAL_COVERAGE" | "MIXED_CURRENCY" | "TRUNCATED_RESULT" | "NULL_AMOUNTS_EXCLUDED" | "NO_DATA_FOR_PERIOD" | "UNNORMALISED_ITEM_TEXT" | "MISSING_COUNTRY_IN_RESULT" | "LIMIT_MAY_HIDE_ROWS" | "NO_MATCH_FOR_TERM";
             /** Message Es */
             message_es: string;
             /** Message En */
@@ -500,6 +585,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CoverageResponse"];
+                };
+            };
+        };
+    };
+    get_procedures_procedures_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                country?: string[] | null;
+                status?: ("PLANNED" | "PUBLISHED" | "OPEN" | "EVALUATION" | "AWARDED" | "CONTRACTED" | "COMPLETED" | "CANCELLED" | "DESERTED" | "SUSPENDED")[] | null;
+                procurement_method?: string[] | null;
+                published_from?: string | null;
+                published_to?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProceduresResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
