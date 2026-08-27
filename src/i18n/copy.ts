@@ -43,7 +43,7 @@ export const copy = {
       countries: {
         label: "Países disponibles",
         detailTitle: "Cobertura por país",
-        withData: "Con datos",
+        recordCount: "{n} registros",
         soonStatus: "Próximamente",
         inactiveStatus: "Inactivo",
         activeSuffix: "con datos",

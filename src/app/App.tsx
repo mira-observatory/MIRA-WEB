@@ -256,20 +256,13 @@ export function App() {
                         />
                         <div className="country-info">
                           <span className="country-name">{country.name}</span>
-                          {country.active ? (
-                            <small className="country-count tabular">
-                              {copy.countries.processCount.replace(
-                                "{n}",
-                                formatCount(country.processCount),
-                              )}
-                            </small>
-                          ) : (
-                            <small className="country-count">{copy.countries.soon}</small>
-                          )}
                         </div>
                         <span className={`coverage-status ${country.status.toLowerCase()}`}>
                           {country.status === "ACTIVE"
-                            ? copy.home.metrics.countries.withData
+                            ? copy.home.metrics.countries.recordCount.replace(
+                                "{n}",
+                                formatCount(country.processCount),
+                              )
                             : country.status === "PLANNED"
                               ? copy.home.metrics.countries.soonStatus
                               : copy.home.metrics.countries.inactiveStatus}
