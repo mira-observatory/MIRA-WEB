@@ -619,10 +619,10 @@ h2 {
   color: #fff;
   font-size: 11px;
 }
-.manual-status-chip.selected .manual-checkbox,
-.manual-country-chip.selected .manual-checkbox {
-  border-color: #00a69c;
-  background: #00a69c;
+.manual-country-chip.selected .manual-checkbox,
+.manual-status-chip.selected .manual-checkbox {
+  border-color: #229c9e;
+  background: #229c9e;
 }
 .manual-form-grid {
   display: grid;
