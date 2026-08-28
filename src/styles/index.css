@@ -1596,4 +1596,11 @@ footer span:last-child {
     width: 100%;
     justify-content: center;
   }
+  
+  /* Fix iOS zoom on inputs and overflow issues */
+  input, select, textarea {
+    font-size: 16px !important;
+    max-width: 100%;
+  }
 }
+
