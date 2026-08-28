@@ -550,6 +550,9 @@ h2 {
 }
 .manual-search-form input {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   height: 44px;
   border: 1px solid #c5cfd6;
   border-radius: 9px;
@@ -1259,6 +1262,9 @@ footer span:last-child {
 .procedure-filters input,
 .procedure-filters select {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   height: 44px;
   border: 1px solid #cbd3db;
   border-radius: 9px;
@@ -1466,7 +1472,7 @@ footer span:last-child {
   }
   .procedure-filters {
     padding: 18px;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .filter-search {
     grid-column: auto;
@@ -1566,7 +1572,7 @@ footer span:last-child {
   .manual-country-options,
   .manual-two-columns,
   .manual-status-options {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .coverage-countries {
     padding: 17px 18px 19px;
@@ -1604,3 +1610,4 @@ footer span:last-child {
     max-width: 100%;
   }
 }
+
