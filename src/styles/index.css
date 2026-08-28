@@ -616,6 +616,7 @@ h2 {
   color: #fff;
   font-size: 11px;
 }
+.manual-country-chip.selected .manual-checkbox,
 .manual-status-chip.selected .manual-checkbox {
   border-color: #229c9e;
   background: #229c9e;
@@ -1603,4 +1604,3 @@ footer span:last-child {
     max-width: 100%;
   }
 }
-
