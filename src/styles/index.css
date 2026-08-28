@@ -550,6 +550,9 @@ h2 {
 }
 .manual-search-form input {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   height: 44px;
   border: 1px solid #c5cfd6;
   border-radius: 9px;
@@ -616,9 +619,10 @@ h2 {
   color: #fff;
   font-size: 11px;
 }
-.manual-status-chip.selected .manual-checkbox {
-  border-color: #229c9e;
-  background: #229c9e;
+.manual-status-chip.selected .manual-checkbox,
+.manual-country-chip.selected .manual-checkbox {
+  border-color: #00a69c;
+  background: #00a69c;
 }
 .manual-form-grid {
   display: grid;
@@ -1258,6 +1262,9 @@ footer span:last-child {
 .procedure-filters input,
 .procedure-filters select {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   height: 44px;
   border: 1px solid #cbd3db;
   border-radius: 9px;
