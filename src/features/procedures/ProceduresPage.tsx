@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 
 import { CalendarIcon, DocumentIcon, SearchIcon } from "../../components/icons";
 import { MiraLogo } from "../../components/icons/MiraLogo";
+import { copy } from "../../i18n/copy";
 import { formatCount } from "../../lib/format";
 import { fetchCoverage } from "../coverage/api";
 import { fetchProcedures, fetchProcessStatuses, type ProcedureQuery } from "./api";

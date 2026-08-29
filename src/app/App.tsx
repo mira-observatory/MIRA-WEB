@@ -474,14 +474,14 @@ export function App() {
           </div>
           <div className="footer-text">
             <span>
-              <strong>{copy.brand.name}</strong> — {copy.home.footer.product}
+              <strong>{copy.brand.name}</strong> ?" {copy.home.footer.product}
             </span>
             <span>{copy.home.footer.initiative}</span>
           </div>
         </div>
       </footer>
 
-      {/* Botón flotante para reabrir el asistente */}
+      {/* BotA3n flotante para reabrir el asistente */}
       {conversation.turns.length > 0 && !panelOpen && (
         <button
           type="button"
