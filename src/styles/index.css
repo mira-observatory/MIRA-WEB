@@ -25,6 +25,7 @@ html {
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
   min-height: 100vh;
   background:
     radial-gradient(circle at 100% 45%, rgba(57, 207, 184, 0.09), transparent 28rem),
@@ -937,19 +938,42 @@ h2 {
   box-shadow: 0 12px 28px rgba(6, 27, 81, 0.35);
 }
 footer {
-  min-height: 64px;
   color: rgba(255, 255, 255, 0.85);
   background: linear-gradient(105deg, #082d61, #061b51);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px max(4vw, calc((100% - 1450px) / 2));
+  padding: 40px max(4vw, calc((100% - 1450px) / 2));
   font-size: 13px;
 }
-footer span:first-child {
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 800px;
+}
+.footer-logos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 32px;
+}
+.footer-logo {
+  filter: brightness(0) invert(1);
+  object-fit: contain;
+}
+.url-logo {
+  height: 50px;
+}
+.carter-logo {
+  height: 55px;
+}
+.footer-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.footer-text span:first-child {
   font-weight: 500;
 }
-footer span:last-child {
+.footer-text span:last-child {
   color: rgba(255, 255, 255, 0.7);
   font-size: 12px;
 }
@@ -1472,7 +1496,9 @@ footer span:last-child {
   }
   .procedure-filters {
     padding: 18px;
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
   .filter-search {
     grid-column: auto;
@@ -1570,9 +1596,14 @@ footer span:last-child {
     white-space: nowrap;
   }
   .manual-country-options,
-  .manual-two-columns,
   .manual-status-options {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .manual-two-columns {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 12px;
   }
   .coverage-countries {
     padding: 17px 18px 19px;
