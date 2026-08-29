@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 
 import { CalendarIcon, DocumentIcon, SearchIcon } from "../../components/icons";
 import { MiraLogo } from "../../components/icons/MiraLogo";
-import { copy } from "../../i18n/copy";
+import { SiteFooter } from "../../components/SiteFooter";
 import { formatCount } from "../../lib/format";
 import { fetchCoverage } from "../coverage/api";
 import { fetchProcedures, fetchProcessStatuses, type ProcedureQuery } from "./api";
@@ -69,9 +69,17 @@ export function ProceduresPage() {
   const [params, setParams] = useSearchParams();
   const applied = useMemo(() => readFilters(params), [params]);
   const [draft, setDraft] = useState(applied);
+  // En movil los filtros arrancan plegados: apilados ocupan mas de una pantalla
+  // y empujan la intro y los resultados fuera de vista. En escritorio el CSS
+  // los muestra siempre y esconde el boton.
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const page = Math.min(10_000, Math.max(1, Math.floor(Number(params.get("pagina")) || 1)));
+  const appliedCount = Object.values(applied).filter((value) => value.trim()).length;
 
   useEffect(() => setDraft(applied), [applied]);
+  // React Router conserva el scroll al navegar: sin esto se entra al catalogo a
+  // media pagina y la cabecera queda fuera de vista.
+  useEffect(() => window.scrollTo({ top: 0 }), []);
   useEffect(() => {
     const previous = document.title;
     document.title = "Procedimientos - MIRA";
@@ -157,101 +165,122 @@ export function ProceduresPage() {
           <DocumentIcon size={52} />
         </section>
 
-        <form className="procedure-filters card" onSubmit={submit}>
-          <label className="filter-search">
-            <span>Palabra o número</span>
-            <div>
-              <SearchIcon size={19} />
+        <div className={`procedure-filters-panel card ${filtersOpen ? "open" : ""}`}>
+          <button
+            type="button"
+            className="procedure-filters-toggle"
+            aria-expanded={filtersOpen}
+            aria-controls="procedure-filters"
+            onClick={() => setFiltersOpen(!filtersOpen)}
+          >
+            <span>Filtros</span>
+            <span className="toggle-meta">
+              {appliedCount > 0 && (
+                <span className="filters-count">
+                  {appliedCount} {appliedCount === 1 ? "activo" : "activos"}
+                </span>
+              )}
+              <span className="toggle-chevron" aria-hidden="true">
+                ▼
+              </span>
+            </span>
+          </button>
+          <form id="procedure-filters" className="procedure-filters" onSubmit={submit}>
+            <label className="filter-search">
+              <span>Palabra o número</span>
+              <div>
+                <SearchIcon size={19} />
+                <input
+                  value={draft.q}
+                  minLength={2}
+                  maxLength={200}
+                  placeholder="Ej. medicamentos o 45/2026"
+                  onChange={(event) => setDraft({ ...draft, q: event.target.value })}
+                />
+              </div>
+            </label>
+            <label>
+              <span>País</span>
+              <select
+                value={draft.country}
+                disabled={coverage.isLoading || coverage.isError}
+                onChange={(event) => setDraft({ ...draft, country: event.target.value })}
+              >
+                <option value="">
+                  {coverage.isLoading
+                    ? "Cargando países…"
+                    : coverage.isError
+                      ? "Países no disponibles"
+                      : "Todos los países"}
+                </option>
+                {countryOptions.map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>Estado</span>
+              <select
+                value={draft.status}
+                onChange={(event) => setDraft({ ...draft, status: event.target.value })}
+              >
+                <option value="">
+                  {statuses.isLoading
+                    ? "Cargando estados…"
+                    : statuses.isError
+                      ? "Estados no disponibles"
+                      : "Todos los estados"}
+                </option>
+                {(statuses.data?.statuses ?? []).map(({ value, process_count }) => (
+                  <option key={value} value={value}>
+                    {value} ({formatCount(process_count)})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>Modalidad</span>
               <input
-                value={draft.q}
-                minLength={2}
-                maxLength={200}
-                placeholder="Ej. medicamentos o 45/2026"
-                onChange={(event) => setDraft({ ...draft, q: event.target.value })}
+                value={draft.method}
+                maxLength={160}
+                placeholder="Ej. contratación menor"
+                onChange={(event) => setDraft({ ...draft, method: event.target.value })}
               />
+            </label>
+            <label>
+              <span>Publicado desde</span>
+              <input
+                type="date"
+                value={draft.from}
+                max={draft.to || undefined}
+                onChange={(event) => setDraft({ ...draft, from: event.target.value })}
+              />
+            </label>
+            <label>
+              <span>Publicado hasta</span>
+              <input
+                type="date"
+                value={draft.to}
+                min={draft.from || undefined}
+                onChange={(event) => setDraft({ ...draft, to: event.target.value })}
+              />
+            </label>
+            <div className="filter-actions">
+              <button type="submit">Buscar</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDraft(readFilters(new URLSearchParams()));
+                  setParams(new URLSearchParams());
+                }}
+              >
+                Limpiar
+              </button>
             </div>
-          </label>
-          <label>
-            <span>País</span>
-            <select
-              value={draft.country}
-              disabled={coverage.isLoading || coverage.isError}
-              onChange={(event) => setDraft({ ...draft, country: event.target.value })}
-            >
-              <option value="">
-                {coverage.isLoading
-                  ? "Cargando países…"
-                  : coverage.isError
-                    ? "Países no disponibles"
-                    : "Todos los países"}
-              </option>
-              {countryOptions.map(([code, name]) => (
-                <option key={code} value={code}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>Estado</span>
-            <select
-              value={draft.status}
-              onChange={(event) => setDraft({ ...draft, status: event.target.value })}
-            >
-              <option value="">
-                {statuses.isLoading
-                  ? "Cargando estados…"
-                  : statuses.isError
-                    ? "Estados no disponibles"
-                    : "Todos los estados"}
-              </option>
-              {(statuses.data?.statuses ?? []).map(({ value, process_count }) => (
-                <option key={value} value={value}>
-                  {value} ({formatCount(process_count)})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>Modalidad</span>
-            <input
-              value={draft.method}
-              maxLength={160}
-              placeholder="Ej. contratación menor"
-              onChange={(event) => setDraft({ ...draft, method: event.target.value })}
-            />
-          </label>
-          <label>
-            <span>Publicado desde</span>
-            <input
-              type="date"
-              value={draft.from}
-              max={draft.to || undefined}
-              onChange={(event) => setDraft({ ...draft, from: event.target.value })}
-            />
-          </label>
-          <label>
-            <span>Publicado hasta</span>
-            <input
-              type="date"
-              value={draft.to}
-              min={draft.from || undefined}
-              onChange={(event) => setDraft({ ...draft, to: event.target.value })}
-            />
-          </label>
-          <div className="filter-actions">
-            <button type="submit">Buscar</button>
-            <button
-              type="button"
-              onClick={() => {
-                setDraft(readFilters(new URLSearchParams()));
-                setParams(new URLSearchParams());
-              }}
-            >
-              Limpiar
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
 
         <section className="procedure-results" aria-live="polite">
           <div className="results-heading">
@@ -353,20 +382,7 @@ export function ProceduresPage() {
         </section>
       </main>
 
-      <footer>
-        <div className="footer-content">
-          <div className="footer-logos">
-            <img src="/images/url_logo.png" alt="Universidad Rafael LandA-var" className="footer-logo url-logo" />
-            <img src="/images/carter_center_logo.png" alt="The Carter Center" className="footer-logo carter-logo" />
-          </div>
-          <div className="footer-text">
-            <span>
-              <strong>{copy.brand.name}</strong> ?" {copy.home.footer.product}
-            </span>
-            <span>{copy.home.footer.initiative}</span>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

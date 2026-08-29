@@ -46,6 +46,33 @@ a:focus-visible {
   outline: 3px solid rgba(0, 161, 153, 0.32);
   outline-offset: 2px;
 }
+/* Safari de iOS pinta un control nativo para type="date" con su propio ancho
+   intrinseco y su propia alineacion, que ganan sobre width/padding y hacen que
+   el campo se salga de su columna y el valor quede descuadrado. */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  margin: 0;
+  text-align: left;
+}
+input[type="date"]::-webkit-datetime-edit {
+  padding: 0;
+  line-height: normal;
+}
+/* margin-left: auto deja el icono a la derecha sin empujar el valor */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  margin-left: auto;
+  opacity: 0.6;
+}
+
 .tabular {
   font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
   font-variant-numeric: tabular-nums;
@@ -937,17 +964,23 @@ h2 {
   transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(6, 27, 81, 0.35);
 }
-footer {
+.site-footer {
   color: rgba(255, 255, 255, 0.85);
   background: linear-gradient(105deg, #082d61, #061b51);
-  padding: 40px max(4vw, calc((100% - 1450px) / 2));
+  padding: 36px max(4vw, calc((100% - 1450px) / 2));
   font-size: 13px;
+}
+/* El boton flotante "Ver consulta" vive fijo en la esquina inferior derecha:
+   sin este hueco se superpone al texto del pie al llegar al final. */
+.site-footer.with-floating-action {
+  padding-bottom: 92px;
 }
 .footer-content {
   display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 800px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 40px;
 }
 .footer-logos {
   display: flex;
@@ -969,6 +1002,7 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  text-align: right;
 }
 .footer-text span:first-child {
   font-weight: 500;
@@ -1013,8 +1047,11 @@ footer {
     width: calc(100% - 28px);
     padding-top: 24px;
   }
+  /* Las region-dots decorativas ya estan ocultas desde 1280px, asi que aqui el
+     min-height solo dejaba un hueco muerto entre la marca y la cobertura. */
   .brand {
-    min-height: 160px;
+    min-height: 0;
+    align-items: center;
   }
   .brand-mark {
     width: 91px;
@@ -1031,6 +1068,29 @@ footer {
   .brand-promise {
     font-size: 12px;
     margin-top: 10px;
+  }
+  /* En pantallas estrechas el titulo y el estado no caben en una linea (el
+     estado es texto monoespaciado y puede ser largo: "12.847.201 procesos
+     cargados"), asi que se apilan y el chevron se ancla a la derecha. */
+  .metrics-toggle {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+    padding: 14px 44px 14px 18px;
+    text-align: left;
+  }
+  .metrics-toggle .toggle-meta {
+    justify-content: flex-start;
+  }
+  .metrics-toggle .toggle-chevron {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .metrics-toggle.open .toggle-chevron {
+    transform: translateY(-50%) rotate(180deg);
   }
   .metrics {
     grid-template-columns: 1fr;
@@ -1144,11 +1204,25 @@ footer {
     height: 38px;
     flex: 0 0 38px;
   }
-  footer {
+  .site-footer {
+    padding: 26px 18px;
+  }
+  .site-footer.with-floating-action {
+    padding-bottom: 88px;
+  }
+  .footer-content {
     flex-direction: column;
+    align-items: center;
     text-align: center;
-    gap: 8px;
-    padding: 20px 18px;
+    gap: 18px;
+  }
+  .footer-logos {
+    justify-content: center;
+    gap: 26px;
+  }
+  .footer-text {
+    align-items: center;
+    text-align: center;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1265,6 +1339,10 @@ footer {
 .procedures-intro p {
   margin: 9px 0 0;
   color: rgba(255, 255, 255, 0.82);
+}
+/* El boton solo aparece en movil; en escritorio los filtros van siempre visibles. */
+.procedure-filters-toggle {
+  display: none;
 }
 .procedure-filters {
   padding: 24px;
@@ -1493,6 +1571,42 @@ footer {
   }
   .procedures-intro > svg {
     display: none;
+  }
+  .procedure-filters-toggle {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #061b44;
+    font-weight: 650;
+    font-size: 14px;
+  }
+  .procedure-filters-toggle .toggle-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .procedure-filters-toggle .filters-count {
+    color: #087d85;
+    font-size: 12.5px;
+    font-weight: 650;
+  }
+  .procedure-filters-toggle .toggle-chevron {
+    color: #647080;
+    font-size: 14px;
+    transition: transform 0.2s ease;
+  }
+  .procedure-filters-panel.open .toggle-chevron {
+    transform: rotate(180deg);
+  }
+  .procedure-filters-panel:not(.open) .procedure-filters {
+    display: none;
+  }
+  .procedure-filters-panel.open .procedure-filters {
+    border-top: 1px solid #edf0f2;
   }
   .procedure-filters {
     padding: 18px;

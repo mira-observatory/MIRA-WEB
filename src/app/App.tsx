@@ -19,6 +19,7 @@ import {
   SparkIcon,
 } from "../components/icons";
 import { MiraLogo } from "../components/icons/MiraLogo";
+import { SiteFooter } from "../components/SiteFooter";
 import { AskPanel } from "../features/ask/AskPanel";
 import { useAskConversation } from "../features/ask/useAskConversation";
 import { fetchCoverage } from "../features/coverage/api";
@@ -115,7 +116,7 @@ export function App() {
   const [question, setQuestion] = useState("");
   const [notice, setNotice] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
-  const [coverageOpen, setCoverageOpen] = useState(true);
+  const [coverageOpen, setCoverageOpen] = useState(false);
   const [manualSearchOpen, setManualSearchOpen] = useState(false);
   const [showFilterHint, setShowFilterHint] = useState(false);
   const manualSearchButtonRef = useRef<HTMLButtonElement>(null);
@@ -162,6 +163,9 @@ export function App() {
     };
   }, [manualSearchOpen, panelOpen, question]);
 
+  // El boton flotante y el hueco que le reserva el pie de pagina dependen de lo
+  // mismo: hay conversacion y el panel esta cerrado.
+  const showReopenButton = conversation.turns.length > 0 && !panelOpen;
   const currentConversationCountries = conversation.turns.at(-1)?.countries ?? activeCountryCodes;
   const askAllCountries = (text: string) => conversation.ask(text, activeCountryCodes);
   const askFollowUp = (text: string) => conversation.ask(text, currentConversationCountries);
@@ -465,24 +469,10 @@ export function App() {
         </section>
       </main>
 
-      {/* 5. Footer Profesional */}
-      <footer>
-        <div className="footer-content">
-          <div className="footer-logos">
-            <img src="/images/url_logo.png" alt="Universidad Rafael LandA-var" className="footer-logo url-logo" />
-            <img src="/images/carter_center_logo.png" alt="The Carter Center" className="footer-logo carter-logo" />
-          </div>
-          <div className="footer-text">
-            <span>
-              <strong>{copy.brand.name}</strong> - {copy.home.footer.product}
-            </span>
-            <span>{copy.home.footer.initiative}</span>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter reserveFloatingAction={showReopenButton} />
 
       {/* BotA3n flotante para reabrir el asistente */}
-      {conversation.turns.length > 0 && !panelOpen && (
+      {showReopenButton && (
         <button
           type="button"
           onClick={() => setPanelOpen(true)}
