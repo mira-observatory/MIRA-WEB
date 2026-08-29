@@ -1,4 +1,4 @@
-import { copy } from "../../i18n/copy";
+import { getCopy } from "../../i18n";
 
 /**
  * Traduce los nombres de columna que vienen de query.* (MIRA-ETL) a algo que
@@ -11,7 +11,7 @@ import { copy } from "../../i18n/copy";
  * ejemplo) cae al humanizador generico: nunca se muestra un snake_case
  * desnudo.
  */
-const COLUMN_LABEL: Record<string, string> = { ...copy.columns };
+const COLUMN_LABEL: Record<string, string> = { ...getCopy().columns };
 
 /** "algun_alias_nuevo" -> "Algun alias nuevo" -- nunca un snake_case desnudo. */
 function humanize(name: string): string {

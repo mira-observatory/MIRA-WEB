@@ -1,5 +1,5 @@
 import type { ConversationTurn, Outcome, QueryColumn } from "./api";
-import { copy } from "../../i18n/copy";
+import { getCopy } from "../../i18n";
 
 export type ResponseLanguage = "es" | "en";
 
@@ -135,7 +135,7 @@ export async function* streamQuery(input: {
   });
 
   if (!response.ok || !response.body) {
-    throw new Error(`${copy.errors.serviceResponded} ${response.status}`);
+    throw new Error(`${getCopy().errors.serviceResponded} ${response.status}`);
   }
 
   const reader = response.body.getReader();

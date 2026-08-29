@@ -7,7 +7,17 @@
  * que agregar entre paises produciria una cifra falsa.
  */
 
-import { copy } from "../i18n/copy";
+import { getCopy, getLanguage, INTL_LOCALE } from "../i18n";
+
+/**
+ * Locale para escribir la cifra. En espanol se usa el del pais del dato, que es
+ * como se publican ahi; en ingles se unifica en en-US. La moneda no entra en
+ * esta decision: sale del propio registro y no cambia nunca con el idioma.
+ */
+function localeFor(countryCode?: string): string {
+  if (getLanguage() !== "es") return INTL_LOCALE[getLanguage()];
+  return (countryCode && LOCALE_BY_COUNTRY[countryCode]) || "es";
+}
 
 const LOCALE_BY_COUNTRY: Record<string, string> = {
   GT: "es-GT",
@@ -27,14 +37,13 @@ export function formatMoney(
   currencyCode: string | null | undefined,
   countryCode?: string,
 ): string {
-  if (value === null || value === undefined) return copy.format.missingData;
+  if (value === null || value === undefined) return getCopy().format.missingData;
   if (!currencyCode) {
     // Hay registros sin moneda declarada. Se muestran como numero desnudo y se
     // reportan aparte, nunca se descartan en silencio ni se asumen en una moneda.
-    return `${new Intl.NumberFormat("es").format(value)} (${copy.format.missingCurrency})`;
+    return `${new Intl.NumberFormat(localeFor(countryCode)).format(value)} (${getCopy().format.missingCurrency})`;
   }
-  const locale = (countryCode && LOCALE_BY_COUNTRY[countryCode]) || "es";
-  return new Intl.NumberFormat(locale, {
+  return new Intl.NumberFormat(localeFor(countryCode), {
     style: "currency",
     currency: currencyCode,
     maximumFractionDigits: 0,
@@ -42,14 +51,15 @@ export function formatMoney(
 }
 
 export function formatCount(value: number | null | undefined): string {
-  if (value === null || value === undefined) return copy.format.missingData;
-  return new Intl.NumberFormat("es").format(value);
+  if (value === null || value === undefined) return getCopy().format.missingData;
+  return new Intl.NumberFormat(localeFor()).format(value);
 }
 
 export function formatDate(value: string | null | undefined, countryCode?: string): string {
-  if (!value) return copy.format.missingDate;
-  const locale = (countryCode && LOCALE_BY_COUNTRY[countryCode]) || "es";
-  return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(value));
+  if (!value) return getCopy().format.missingDate;
+  return new Intl.DateTimeFormat(localeFor(countryCode), { dateStyle: "medium" }).format(
+    new Date(value),
+  );
 }
 
 /**

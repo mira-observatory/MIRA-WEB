@@ -19,37 +19,42 @@ import {
   SparkIcon,
 } from "../components/icons";
 import { MiraLogo } from "../components/icons/MiraLogo";
+import { LanguageToggle } from "../components/LanguageToggle";
 import { SiteFooter } from "../components/SiteFooter";
 import { AskPanel } from "../features/ask/AskPanel";
 import { useAskConversation } from "../features/ask/useAskConversation";
 import { fetchCoverage } from "../features/coverage/api";
 import { ManualSearchPanel } from "../features/manual-search/ManualSearchPanel";
-import { copy } from "../i18n/copy";
+import { getCopy, getLanguage, INTL_LOCALE, useCopy, type Copy } from "../i18n";
 import { formatCount } from "../lib/format";
 
 // Bandera de reserva cuando la API no trae una, o el archivo no carga.
 const GENERIC_FLAG_ASSET = "/flags/generic.svg";
 
-const examples = [
-  { Icon: BuildingIcon, text: copy.home.examples.mostContractsHonduras },
-  { Icon: PillIcon, text: copy.home.examples.medicinePurchases },
-  { Icon: MonitorIcon, text: copy.home.examples.computerEquipmentCostaRica },
-  {
-    Icon: HandshakeIcon,
-    text: copy.home.examples.directAwardInstitutions,
-  },
-];
+// Se construyen al renderizar, no al cargar el modulo: el texto depende del
+// idioma activo y una constante de modulo se quedaria con el de arranque.
+function buildExamples(copy: Copy) {
+  return [
+    { Icon: BuildingIcon, text: copy.home.examples.mostContractsHonduras },
+    { Icon: PillIcon, text: copy.home.examples.medicinePurchases },
+    { Icon: MonitorIcon, text: copy.home.examples.computerEquipmentCostaRica },
+    {
+      Icon: HandshakeIcon,
+      text: copy.home.examples.directAwardInstitutions,
+    },
+  ];
+}
 
-const MONTH_YEAR_FORMAT = new Intl.DateTimeFormat("es", {
-  month: "short",
-  year: "numeric",
-});
-const DATE_FORMAT = new Intl.DateTimeFormat("es", { dateStyle: "medium" });
-const TIME_FORMAT = new Intl.DateTimeFormat("es", {
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZoneName: "short",
-});
+const monthYearFormat = () =>
+  new Intl.DateTimeFormat(INTL_LOCALE[getLanguage()], { month: "short", year: "numeric" });
+const dateFormat = () =>
+  new Intl.DateTimeFormat(INTL_LOCALE[getLanguage()], { dateStyle: "medium" });
+const timeFormat = () =>
+  new Intl.DateTimeFormat(INTL_LOCALE[getLanguage()], {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
 
 function dateOnly(value: string): Date {
   const [year = "0", month = "1", day = "1"] = value.split("-");
@@ -61,23 +66,25 @@ function capitalize(value: string): string {
 }
 
 function formatCoverageRange(from: string | null | undefined, to: string | null | undefined) {
-  if (!from || !to) return copy.format.missingDate;
-  const fromLabel = capitalize(MONTH_YEAR_FORMAT.format(dateOnly(from)));
-  const toLabel = capitalize(MONTH_YEAR_FORMAT.format(dateOnly(to)));
+  if (!from || !to) return getCopy().format.missingDate;
+  const format = monthYearFormat();
+  const fromLabel = capitalize(format.format(dateOnly(from)));
+  const toLabel = capitalize(format.format(dateOnly(to)));
   return `${fromLabel} - ${toLabel}`;
 }
 
 function formatCoverageDate(value: string | null | undefined) {
-  if (!value) return copy.format.missingDate;
-  return DATE_FORMAT.format(new Date(value));
+  if (!value) return getCopy().format.missingDate;
+  return dateFormat().format(new Date(value));
 }
 
 function formatCoverageTime(value: string | null | undefined) {
-  if (!value) return copy.format.missingDate;
-  return TIME_FORMAT.format(new Date(value));
+  if (!value) return getCopy().format.missingDate;
+  return timeFormat().format(new Date(value));
 }
 
 function Brand() {
+  const copy = useCopy();
   return (
     <header className="brand" aria-label={copy.brand.ariaLabel}>
       <MiraLogo className="brand-mark" />
@@ -113,6 +120,8 @@ function Brand() {
 }
 
 export function App() {
+  const copy = useCopy();
+  const examples = buildExamples(copy);
   const [question, setQuestion] = useState("");
   const [notice, setNotice] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
@@ -149,6 +158,15 @@ export function App() {
     () => countryOptions.filter((country) => country.active).map((country) => country.code),
     [countryOptions],
   );
+
+  // El titulo y la descripcion vivian en main.tsx, donde se fijaban una sola vez
+  // al arrancar; aqui siguen al idioma.
+  useEffect(() => {
+    document.title = copy.document.title;
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", copy.document.description);
+  }, [copy]);
 
   useEffect(() => {
     if (manualSearchOpen || panelOpen || question.trim()) {
@@ -207,6 +225,10 @@ export function App() {
   return (
     <div className="site-shell">
       <main className="page">
+        <div className="page-topbar">
+          <LanguageToggle />
+        </div>
+
         {/* 1. Header / Brand Original */}
         <Brand />
 
@@ -223,7 +245,12 @@ export function App() {
             <span>{copy.home.coverageAriaLabel}</span>
             <div className="toggle-meta">
               <span className="tabular">
-                {metricValue(`${formatCount(coverageSummary?.process_count)} procesos cargados`)}
+                {metricValue(
+                  copy.home.coverageProcesses.replace(
+                    "{n}",
+                    formatCount(coverageSummary?.process_count),
+                  ),
+                )}
               </span>
               <span className="toggle-chevron" aria-hidden="true">
                 ▼
@@ -432,14 +459,17 @@ export function App() {
                   <button
                     key={example.text}
                     onClick={() => {
-                      setQuestion(example.text);
                       setNotice("");
-                      if (activeCountryCodes.length > 0) {
-                        setPanelOpen(true);
-                        askAllCountries(example.text);
-                      } else {
+                      if (activeCountryCodes.length === 0) {
                         setNotice(copy.home.ask.missingCountry);
+                        return;
                       }
+                      setPanelOpen(true);
+                      askAllCountries(example.text);
+                      // El buscador queda vacio, igual que tras enviar a mano:
+                      // la pregunta ya esta en el panel, repetirla en la caja
+                      // solo deja texto viejo al cerrar el chat.
+                      setQuestion("");
                     }}
                     className="example"
                   >
@@ -477,10 +507,10 @@ export function App() {
           type="button"
           onClick={() => setPanelOpen(true)}
           className="reopen-chat-btn"
-          aria-label="Abrir asistente de consultas"
+          aria-label={copy.home.reopenChatAriaLabel}
         >
           <SparkIcon size={18} />
-          <span>Ver consulta ({conversation.turns.length})</span>
+          <span>{copy.home.reopenChat.replace("{n}", String(conversation.turns.length))}</span>
         </button>
       )}
 

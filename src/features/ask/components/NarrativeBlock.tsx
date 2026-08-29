@@ -1,6 +1,6 @@
 import { SparkIcon } from "../../../components/icons";
 import { MarkdownRenderer } from "../../../components/markdown/MarkdownRenderer";
-import { copy } from "../../../i18n/copy";
+import { useCopy } from "../../../i18n";
 
 type Props = {
   text: string;
@@ -17,6 +17,7 @@ type Props = {
  * ningun resaltado de digitos.
  */
 export function NarrativeBlock({ text, verified, isTemplateOnly }: Props) {
+  const copy = useCopy();
   if (isTemplateOnly) {
     return (
       <div className="rounded-2xl border border-rule bg-paper px-5 py-4">

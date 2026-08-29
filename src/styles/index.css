@@ -1288,6 +1288,51 @@ h2 {
   margin: 0 auto;
   padding: 24px 0 56px;
 }
+/* Selector de idioma: dos letras, discreto. En la portada va anclado a la
+   esquina de .brand (que ya es position: relative) para no descolocar el logo,
+   que esta centrado. */
+.language-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid #d7dfe4;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+}
+.language-toggle button {
+  min-width: 32px;
+  min-height: 26px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  color: #6a7a8c;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+.language-toggle button:hover {
+  color: #10405f;
+}
+.language-toggle button.selected {
+  color: #fff;
+  background: var(--action-teal, #00a69c);
+}
+.page-topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+.procedures-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .procedures-header {
   min-height: 64px;
   display: flex;
@@ -1422,15 +1467,52 @@ h2 {
 .results-heading h2 {
   margin: 0 0 3px;
   font-size: 21px;
+  letter-spacing: -0.01em;
 }
+/* Solo los digitos en cifra tabular. Antes el subtitulo entero iba en la fuente
+   monoespaciada de datos, y "procedimientos encontrados" desentonaba al lado
+   del titulo. */
 .results-heading p {
   margin: 0;
   color: #637184;
-  font-size: 13px;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
 }
-.results-heading > span {
-  color: #087d85;
-  font-size: 12px;
+/* Tres puntos que laten mientras llega la data, mismo lenguaje que el asistente. */
+.loading-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.loading-dots > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--action-teal, #00a69c);
+  animation: loadingDot 1.1s ease-in-out infinite;
+}
+.loading-dots > span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.loading-dots > span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes loadingDot {
+  0%,
+  70%,
+  100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+.results-state strong {
+  color: #33465e;
+  font-size: 14px;
+  font-weight: 650;
 }
 .procedure-table-wrap {
   overflow-x: auto;
@@ -1557,6 +1639,12 @@ h2 {
   .procedures-page {
     width: calc(100% - 28px);
     padding-top: 10px;
+  }
+  .procedures-header-actions {
+    gap: 10px;
+  }
+  .page-topbar {
+    margin-bottom: 2px;
   }
   .procedures-brand {
     font-size: 20px;

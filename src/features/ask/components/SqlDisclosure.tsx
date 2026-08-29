@@ -1,4 +1,4 @@
-import { copy } from "../../../i18n/copy";
+import { useCopy } from "../../../i18n";
 
 type Props = { sql: string };
 
@@ -9,6 +9,7 @@ type Props = { sql: string };
  * y nunca detras de un rol o permiso especial.
  */
 export function SqlDisclosure({ sql }: Props) {
+  const copy = useCopy();
   return (
     <details className="group rounded-2xl border border-rule bg-paper-raised px-4 py-3 open:pb-4">
       <summary className="flex cursor-pointer list-none items-center gap-2 font-sans text-sm font-semibold text-isthmus">

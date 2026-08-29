@@ -1,4 +1,4 @@
-import { copy } from "../i18n/copy";
+import { useCopy } from "../i18n";
 
 type SiteFooterProps = {
   /**
@@ -9,6 +9,7 @@ type SiteFooterProps = {
 };
 
 export function SiteFooter({ reserveFloatingAction = false }: SiteFooterProps) {
+  const copy = useCopy();
   return (
     <footer className={`site-footer ${reserveFloatingAction ? "with-floating-action" : ""}`}>
       <div className="footer-content">

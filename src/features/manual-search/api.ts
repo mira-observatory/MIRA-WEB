@@ -1,6 +1,6 @@
 import { api } from "../../api/client";
 import type { components } from "../../api/generated/schema";
-import { copy } from "../../i18n/copy";
+import { getCopy } from "../../i18n";
 import type { ManualEntityType } from "./manualSearch";
 
 export type EntityCandidate = components["schemas"]["EntityCandidate"];
@@ -15,6 +15,6 @@ export async function resolveEntities(input: {
   const { data, error } = await api.GET(ENTITY_RESOLVE_PATH, {
     params: { query: input },
   });
-  if (error) throw new Error(copy.manualSearch.entityUnavailable);
+  if (error) throw new Error(getCopy().manualSearch.entityUnavailable);
   return data;
 }

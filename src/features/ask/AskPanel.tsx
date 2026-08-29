@@ -2,18 +2,9 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { ArrowUpIcon } from "../../components/icons";
 import { MiraLogo } from "../../components/icons/MiraLogo";
-import { copy } from "../../i18n/copy";
+import { countryName, useCopy } from "../../i18n";
 import { AskTurn } from "./components/AskTurn";
 import type { Turn } from "./useAskConversation";
-
-const COUNTRY_LABEL: Record<string, string> = {
-  GT: copy.countries.byId.gt.name,
-  HN: copy.countries.byId.hn.name,
-  CR: copy.countries.byId.cr.name,
-  SV: copy.countries.byId.sv.name,
-  NI: copy.countries.byId.ni.name,
-  PA: copy.countries.byId.pa.name,
-};
 
 type Props = {
   open: boolean;
@@ -29,6 +20,7 @@ type Props = {
  * Se expande desde la vista principal con una transición suave y centrada.
  */
 export function AskPanel({ open, onClose, turns, countries, isPending, onAsk }: Props) {
+  const copy = useCopy();
   const [followUp, setFollowUp] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -49,7 +41,11 @@ export function AskPanel({ open, onClose, turns, countries, isPending, onAsk }: 
   }, [open, onClose]);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (!open) return;
+    // Solo donde hay teclado fisico. En un movil, enfocar el campo levanta el
+    // teclado en pantalla y tapa la respuesta que se acaba de abrir para leer.
+    // `matchMedia` va con ?. porque jsdom no lo implementa.
+    if (window.matchMedia?.("(pointer: fine)").matches) inputRef.current?.focus();
   }, [open]);
 
   // Cada turno nuevo baja la vista automáticamente
@@ -88,9 +84,7 @@ export function AskPanel({ open, onClose, turns, countries, isPending, onAsk }: 
             <p className="font-sans text-sm font-semibold text-ink">{copy.askPanel.title}</p>
             <p className="truncate font-sans text-xs text-ink-soft">
               {countries.length > 0
-                ? countries
-                    .map((code) => COUNTRY_LABEL[code] ?? code)
-                    .join(copy.askPanel.countrySeparator)
+                ? countries.map((code) => countryName(code)).join(copy.askPanel.countrySeparator)
                 : copy.countries.emptySelection}
             </p>
           </div>

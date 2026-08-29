@@ -1,4 +1,4 @@
-export const copy = {
+export const copyEs = {
   brand: {
     ariaLabel: "MIRA",
     name: "MIRA",
@@ -28,6 +28,9 @@ export const copy = {
   },
   home: {
     coverageAriaLabel: "Resumen de cobertura",
+    coverageProcesses: "{n} procesos cargados",
+    reopenChatAriaLabel: "Abrir asistente de consultas",
+    reopenChat: "Ver consulta ({n})",
     //: Estados de la portada mientras /coverage viaja o no responde.
     loadingCoverage: "Cargando cobertura",
     unavailableCoverage: "Cobertura no disponible",
@@ -83,9 +86,10 @@ export const copy = {
     },
     examples: {
       mostContractsHonduras: "¿Qué empresas recibieron más contratos en Honduras en 2023?",
-      medicinePurchases: "Muéstrame compras de medicamentos en los países disponibles.",
+      medicinePurchases: "Muéstrame compras de medicamentos en Guatemala.",
       computerEquipmentCostaRica: "¿Cuánto se contrató en equipo de cómputo en Costa Rica en 2024?",
-      directAwardInstitutions: "¿Qué instituciones hicieron más compras por adjudicación directa?",
+      directAwardInstitutions:
+        "¿Qué instituciones hicieron más compras por adjudicación directa en Guatemala?",
     },
     catalog: {
       title: "Explora el catálogo de procedimientos",
@@ -154,6 +158,7 @@ export const copy = {
       amountMin: "con monto registrado de al menos {min}",
       amountMax: "con monto registrado de hasta {max}",
       localCurrency: "en la moneda reportada por cada país, sin convertir ni sumar monedas",
+      listJoiner: " y ",
       separator: "; ",
       ending: ".",
     },
@@ -234,6 +239,58 @@ export const copy = {
     invalidQuestionOrCountries: "La pregunta o los paises no son validos.",
     serviceResponded: "El servicio respondio",
   },
+  procedures: {
+    documentTitle: "Procedimientos - MIRA",
+    backHomeAriaLabel: "Volver al inicio de MIRA",
+    backHome: "Volver al inicio",
+    eyebrow: "Catálogo público",
+    title: "Explora los procedimientos",
+    description:
+      "Consulta directamente los registros cargados, sin utilizar inteligencia artificial.",
+    filters: "Filtros",
+    filtersActiveOne: "activo",
+    filtersActiveMany: "activos",
+    search: "Palabra o número",
+    searchPlaceholder: "Ej. medicamentos o 45/2026",
+    country: "País",
+    countryLoading: "Cargando países…",
+    countryUnavailable: "Países no disponibles",
+    countryAll: "Todos los países",
+    status: "Estado",
+    statusLoading: "Cargando estados…",
+    statusUnavailable: "Estados no disponibles",
+    statusAll: "Todos los estados",
+    method: "Modalidad",
+    methodPlaceholder: "Ej. contratación menor",
+    publishedFrom: "Publicado desde",
+    publishedTo: "Publicado hasta",
+    submit: "Buscar",
+    clear: "Limpiar",
+    resultsTitle: "Resultados",
+    resultsLoading: "Consultando registros…",
+    resultsFoundOne: "{n} procedimiento encontrado",
+    resultsFound: "{n} procedimientos encontrados",
+    error: "No pudimos consultar los procedimientos. Intenta de nuevo en un momento.",
+    emptyTitle: "No encontramos procedimientos con estos filtros.",
+    emptyHint: "Prueba con menos filtros o con otra palabra.",
+    columns: {
+      procedure: "Procedimiento",
+      country: "País",
+      status: "Estado",
+      publication: "Publicación",
+      estimatedAmount: "Monto estimado",
+      source: "Fuente",
+    },
+    untitled: "Procedimiento sin título",
+    noStatus: "Sin estado",
+    noDate: "Sin fecha",
+    noAmount: "Sin monto estimado",
+    viewOriginal: "Ver original",
+    paginationLabel: "Paginación de procedimientos",
+    previous: "Anterior",
+    next: "Siguiente",
+    pageOf: "Página {page} de {total}",
+  },
   columns: {
     process_id: "Proceso",
     award_id: "Adjudicación",
@@ -280,4 +337,11 @@ export const copy = {
     total_amount: "Monto total",
     total_count: "Cantidad total",
   },
-} as const;
+};
+
+/**
+ * La forma del texto de la interfaz. Se deriva del espanol a proposito: es el
+ * idioma de referencia, asi que anadir una clave aqui obliga a traducirla en
+ * copy.en.ts y TypeScript lo senala.
+ */
+export type Copy = typeof copyEs;
