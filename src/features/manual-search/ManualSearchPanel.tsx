@@ -318,12 +318,18 @@ export function ManualSearchPanel({
                   aria-controls={`${id}-entity-options`}
                   placeholder={copy.manualSearch.entityPlaceholder}
                   onFocus={() => setEntityFocused(true)}
+                  onClick={() => setEntityFocused(true)}
                   onChange={(event) => update("entityName", event.target.value)}
                 />
               </div>
 
               {showSuggestions && (
-                <div id={`${id}-entity-options`} className="entity-options" role="listbox">
+                <div
+                  id={`${id}-entity-options`}
+                  className="entity-options"
+                  role="listbox"
+                  onMouseDown={(event) => event.preventDefault()}
+                >
                   {entitiesQuery.isFetching ? (
                     <p>{copy.manualSearch.entitySearching}</p>
                   ) : entitiesQuery.isError ? (
