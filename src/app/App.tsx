@@ -474,7 +474,7 @@ export function App() {
           </div>
           <div className="footer-text">
             <span>
-              <strong>{copy.brand.name}</strong> ?" {copy.home.footer.product}
+              <strong>{copy.brand.name}</strong> - {copy.home.footer.product}
             </span>
             <span>{copy.home.footer.initiative}</span>
           </div>
