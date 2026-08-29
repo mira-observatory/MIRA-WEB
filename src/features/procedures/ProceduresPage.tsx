@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 
 import { CalendarIcon, DocumentIcon, SearchIcon } from "../../components/icons";
 import { MiraLogo } from "../../components/icons/MiraLogo";
+import { copy } from "../../i18n/copy";
 import { formatCount } from "../../lib/format";
 import { fetchCoverage } from "../coverage/api";
 import { fetchProcedures, fetchProcessStatuses, type ProcedureQuery } from "./api";
@@ -351,6 +352,21 @@ export function ProceduresPage() {
           )}
         </section>
       </main>
+
+      <footer>
+        <div className="footer-content">
+          <div className="footer-logos">
+            <img src="/images/url_logo.png" alt="Universidad Rafael LandA-var" className="footer-logo url-logo" />
+            <img src="/images/carter_center_logo.png" alt="The Carter Center" className="footer-logo carter-logo" />
+          </div>
+          <div className="footer-text">
+            <span>
+              <strong>{copy.brand.name}</strong> ?" {copy.home.footer.product}
+            </span>
+            <span>{copy.home.footer.initiative}</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

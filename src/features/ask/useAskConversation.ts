@@ -113,26 +113,37 @@ export function buildHistory(turns: Turn[]): ConversationTurn[] {
     }));
 }
 
+let globalTurns: Turn[] = [];
+
 /**
  * Historial de la conversacion. Vive fuera del panel para que cerrarlo y
- * volverlo a abrir no borre lo que ya se pregunto.
+ * volverlo a abrir no borre lo que ya se pregunto. Se mantiene globalmente
+ * para que no se pierda al navegar al catalogo y volver.
  *
  * Cada pregunta es una llamada real a Claude con costo real, asi que no hay
  * reintento automatico -- el backend ya reintenta la generacion de SQL
  * puertas adentro.
  */
 export function useAskConversation() {
-  const [turns, setTurns] = useState<Turn[]>([]);
+  const [turns, setTurns] = useState<Turn[]>(globalTurns);
   const [isPending, setIsPending] = useState(false);
+
+  const setGlobalTurns = (updater: Turn[] | ((current: Turn[]) => Turn[])) => {
+    setTurns((current) => {
+      const next = typeof updater === "function" ? updater(current) : updater;
+      globalTurns = next;
+      return next;
+    });
+  };
 
   const ask = async (question: string, countries: string[]) => {
     const id = crypto.randomUUID();
     const history = buildHistory(turns);
-    setTurns((current) => [...current, emptyTurn(id, question, countries)]);
+    setGlobalTurns((current) => [...current, emptyTurn(id, question, countries)]);
     setIsPending(true);
 
     const update = (apply: (turn: Turn) => Turn) =>
-      setTurns((current) => current.map((turn) => (turn.id === id ? apply(turn) : turn)));
+      setGlobalTurns((current) => current.map((turn) => (turn.id === id ? apply(turn) : turn)));
 
     try {
       for await (const event of streamQuery({ question, countries, history })) {
