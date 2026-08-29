@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FormEvent, FocusEvent, useEffect, useId, useRef, useState } from "react";
 
 import { ArrowLeftIcon, GlobeIcon, SearchIcon, ShieldIcon } from "../../components/icons";
-import { copy } from "../../i18n/copy";
+import { useCopy } from "../../i18n";
 import { formatCount } from "../../lib/format";
 import { fetchProcessStatuses } from "../procedures/api";
 import { resolveEntities } from "./api";
@@ -45,6 +45,7 @@ export function ManualSearchPanel({
   onBack,
   onSearch,
 }: Props) {
+  const copy = useCopy();
   const availableCountries = countryOptions.filter(({ active }) => active);
   const [countries, setCountries] = useState<string[]>(() =>
     availableCountries.map(({ code }) => code),
@@ -318,12 +319,18 @@ export function ManualSearchPanel({
                   aria-controls={`${id}-entity-options`}
                   placeholder={copy.manualSearch.entityPlaceholder}
                   onFocus={() => setEntityFocused(true)}
+                  onClick={() => setEntityFocused(true)}
                   onChange={(event) => update("entityName", event.target.value)}
                 />
               </div>
 
               {showSuggestions && (
-                <div id={`${id}-entity-options`} className="entity-options" role="listbox">
+                <div
+                  id={`${id}-entity-options`}
+                  className="entity-options"
+                  role="listbox"
+                  onMouseDown={(event) => event.preventDefault()}
+                >
                   {entitiesQuery.isFetching ? (
                     <p>{copy.manualSearch.entitySearching}</p>
                   ) : entitiesQuery.isError ? (

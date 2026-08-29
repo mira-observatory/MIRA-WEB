@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckIcon, CopyIcon, DownloadIcon, MoreHorizontalIcon } from "../../../components/icons";
-import { copy } from "../../../i18n/copy";
+import { useCopy } from "../../../i18n";
 import {
   copyTableToClipboard,
   downloadCsvFile,
@@ -22,6 +22,7 @@ type Props = {
  * Controles de acción al pie de cada respuesta de la IA (Copiar, Menú ⋯ con Descargar CSV).
  */
 export function AnswerActions({ text, columns = [], rows = [], className = "" }: Props) {
+  const copy = useCopy();
   const [copiado, setCopiado] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

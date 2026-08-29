@@ -1,15 +1,11 @@
-import { copy } from "../../i18n/copy";
+import { countryName, getCopy } from "../../i18n";
 import { columnLabel } from "./columnLabels";
 import type { QueryColumn } from "./api";
 import { cellCurrencyCode, formatCell, uniformCurrency } from "./components/ResultTable";
 
 type Row = Record<string, unknown>;
 
-/** Los codigos ISO llegan del backend en mayuscula; el catalogo los indexa en minuscula. */
-export function countryLabel(code: string): string {
-  const entry = copy.countries.byId[code.toLowerCase() as keyof typeof copy.countries.byId];
-  return entry ? entry.name : code.toUpperCase();
-}
+export const countryLabel = countryName;
 
 /**
  * La bandera del pais, del mismo juego de SVG que usa el selector.
@@ -33,8 +29,8 @@ export function countryFlagAsset(code: string): string {
 export function tableTitle(countries: string[]): string {
   const [unico] = countries;
   if (countries.length === 1 && unico) return countryLabel(unico);
-  if (countries.length === 0) return copy.table.titleNoCountry;
-  return copy.table.titleManyCountries.replace("{n}", String(countries.length));
+  if (countries.length === 0) return getCopy().table.titleNoCountry;
+  return getCopy().table.titleManyCountries.replace("{n}", String(countries.length));
 }
 
 /** Las barras verticales parten la tabla en dos columnas donde no toca. */
@@ -79,8 +75,8 @@ export function toMarkdown(
     ...cuerpo.map((fila) => `| ${fila.join(" | ")} |`),
     "",
     truncated
-      ? `_${rowCount} ${rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows} — ${copy.table.truncated}_`
-      : `_${rowCount} ${rowCount === 1 ? copy.table.singularRow : copy.table.pluralRows}_`,
+      ? `_${rowCount} ${rowCount === 1 ? getCopy().table.singularRow : getCopy().table.pluralRows} — ${getCopy().table.truncated}_`
+      : `_${rowCount} ${rowCount === 1 ? getCopy().table.singularRow : getCopy().table.pluralRows}_`,
   ];
   return lineas.join("\n");
 }

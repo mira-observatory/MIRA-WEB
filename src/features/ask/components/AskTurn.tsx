@@ -1,6 +1,6 @@
 import { SparkIcon } from "../../../components/icons";
 import { MarkdownRenderer } from "../../../components/markdown/MarkdownRenderer";
-import { copy } from "../../../i18n/copy";
+import { useCopy, type Copy } from "../../../i18n";
 import { classifyOutcome } from "../outcome";
 import { warningText } from "../stream";
 import type { Turn, TurnPhase } from "../useAskConversation";
@@ -8,11 +8,13 @@ import { AnswerActions } from "./AnswerActions";
 import { ResultTable } from "./ResultTable";
 import { StatusPanel } from "./StatusPanel";
 
-const PHASE_LABEL: Record<Exclude<TurnPhase, "done">, string> = {
-  translating: copy.askTurn.phases.translating,
-  querying: copy.askTurn.phases.querying,
-  writing: copy.askTurn.phases.writing,
-};
+function phaseLabel(copy: Copy): Record<Exclude<TurnPhase, "done">, string> {
+  return {
+    translating: copy.askTurn.phases.translating,
+    querying: copy.askTurn.phases.querying,
+    writing: copy.askTurn.phases.writing,
+  };
+}
 
 function QuestionBubble({ text }: { text: string }) {
   return (
@@ -39,6 +41,7 @@ function AnswerShell({ children }: { children: React.ReactNode }) {
 }
 
 function PhaseStatus({ phase }: { phase: Exclude<TurnPhase, "done"> }) {
+  const copy = useCopy();
   return (
     <p className="flex items-center gap-2 font-sans text-sm text-ink-soft" aria-live="polite">
       <span className="flex gap-1" aria-hidden="true">
@@ -46,7 +49,7 @@ function PhaseStatus({ phase }: { phase: Exclude<TurnPhase, "done"> }) {
         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-quetzal [animation-delay:-0.15s]" />
         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-quetzal" />
       </span>
-      {PHASE_LABEL[phase]}
+      {phaseLabel(copy)[phase]}
     </p>
   );
 }
@@ -70,6 +73,7 @@ function ResultWarning({ message }: { message: string }) {
 }
 
 function Narrative({ text, verified, plain }: { text: string; verified: boolean; plain: boolean }) {
+  const copy = useCopy();
   if (plain) {
     return <MarkdownRenderer content={text} className="font-sans text-sm text-ink-soft" />;
   }

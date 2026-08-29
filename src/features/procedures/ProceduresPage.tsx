@@ -4,13 +4,14 @@ import { Link, useSearchParams } from "react-router-dom";
 
 import { CalendarIcon, DocumentIcon, SearchIcon } from "../../components/icons";
 import { MiraLogo } from "../../components/icons/MiraLogo";
+import { getCopy, getLanguage, INTL_LOCALE, useCopy } from "../../i18n";
+import { LanguageToggle } from "../../components/LanguageToggle";
 import { SiteFooter } from "../../components/SiteFooter";
 import { formatCount } from "../../lib/format";
 import { fetchCoverage } from "../coverage/api";
 import { fetchProcedures, fetchProcessStatuses, type ProcedureQuery } from "./api";
 
 const PAGE_SIZE = 25;
-const DATE_FORMAT = new Intl.DateTimeFormat("es", { dateStyle: "medium" });
 
 type Filters = {
   q: string;
@@ -33,20 +34,24 @@ function readFilters(params: URLSearchParams): Filters {
 }
 
 function formatDate(value: string | null | undefined) {
-  return value ? DATE_FORMAT.format(new Date(value)) : "Sin fecha";
+  if (!value) return getCopy().procedures.noDate;
+  return new Intl.DateTimeFormat(INTL_LOCALE[getLanguage()], { dateStyle: "medium" }).format(
+    new Date(value),
+  );
 }
 
 function formatAmount(value: string | null | undefined, currency: string | null | undefined) {
-  if (!value || !Number.isFinite(Number(value))) return "Sin monto estimado";
-  if (!currency) return new Intl.NumberFormat("es").format(Number(value));
+  const locale = INTL_LOCALE[getLanguage()];
+  if (!value || !Number.isFinite(Number(value))) return getCopy().procedures.noAmount;
+  if (!currency) return new Intl.NumberFormat(locale).format(Number(value));
   try {
-    return new Intl.NumberFormat("es", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency,
       maximumFractionDigits: 2,
     }).format(Number(value));
   } catch {
-    return `${new Intl.NumberFormat("es").format(Number(value))} ${currency}`;
+    return `${new Intl.NumberFormat(locale).format(Number(value))} ${currency}`;
   }
 }
 
@@ -66,6 +71,7 @@ function statusClass(status: string | null | undefined) {
 }
 
 export function ProceduresPage() {
+  const copy = useCopy();
   const [params, setParams] = useSearchParams();
   const applied = useMemo(() => readFilters(params), [params]);
   const [draft, setDraft] = useState(applied);
@@ -80,13 +86,11 @@ export function ProceduresPage() {
   // React Router conserva el scroll al navegar: sin esto se entra al catalogo a
   // media pagina y la cabecera queda fuera de vista.
   useEffect(() => window.scrollTo({ top: 0 }), []);
+  // Depende de `copy` para que el titulo tambien cambie al cambiar de idioma.
+  // No restaura el anterior: cada ruta fija el suyo al montar.
   useEffect(() => {
-    const previous = document.title;
-    document.title = "Procedimientos - MIRA";
-    return () => {
-      document.title = previous;
-    };
-  }, []);
+    document.title = copy.procedures.documentTitle;
+  }, [copy]);
 
   const coverage = useQuery({ queryKey: ["coverage"], queryFn: fetchCoverage });
   const statuses = useQuery({
@@ -140,27 +144,31 @@ export function ProceduresPage() {
 
   const data = result.data;
   const items = data?.items ?? [];
+  // isFetching, no isLoading: isLoading solo es la primera carga, y el problema
+  // estaba justo en los refetch (cambiar filtro o pagina).
+  const isBusy = result.isFetching;
 
   return (
     <div className="site-shell procedures-shell">
       <main className="procedures-page">
         <header className="procedures-header">
-          <Link to="/" className="procedures-brand" aria-label="Volver al inicio de MIRA">
+          <Link to="/" className="procedures-brand" aria-label={copy.procedures.backHomeAriaLabel}>
             <MiraLogo />
             <span>MIRA</span>
           </Link>
-          <Link to="/" className="back-home">
-            Volver al inicio
-          </Link>
+          <div className="procedures-header-actions">
+            <LanguageToggle />
+            <Link to="/" className="back-home">
+              {copy.procedures.backHome}
+            </Link>
+          </div>
         </header>
 
         <section className="procedures-intro">
           <div>
-            <span>Catálogo público</span>
-            <h1>Explora los procedimientos</h1>
-            <p>
-              Consulta directamente los registros cargados, sin utilizar inteligencia artificial.
-            </p>
+            <span>{copy.procedures.eyebrow}</span>
+            <h1>{copy.procedures.title}</h1>
+            <p>{copy.procedures.description}</p>
           </div>
           <DocumentIcon size={52} />
         </section>
@@ -173,11 +181,14 @@ export function ProceduresPage() {
             aria-controls="procedure-filters"
             onClick={() => setFiltersOpen(!filtersOpen)}
           >
-            <span>Filtros</span>
+            <span>{copy.procedures.filters}</span>
             <span className="toggle-meta">
               {appliedCount > 0 && (
                 <span className="filters-count">
-                  {appliedCount} {appliedCount === 1 ? "activo" : "activos"}
+                  {appliedCount}{" "}
+                  {appliedCount === 1
+                    ? copy.procedures.filtersActiveOne
+                    : copy.procedures.filtersActiveMany}
                 </span>
               )}
               <span className="toggle-chevron" aria-hidden="true">
@@ -187,20 +198,20 @@ export function ProceduresPage() {
           </button>
           <form id="procedure-filters" className="procedure-filters" onSubmit={submit}>
             <label className="filter-search">
-              <span>Palabra o número</span>
+              <span>{copy.procedures.search}</span>
               <div>
                 <SearchIcon size={19} />
                 <input
                   value={draft.q}
                   minLength={2}
                   maxLength={200}
-                  placeholder="Ej. medicamentos o 45/2026"
+                  placeholder={copy.procedures.searchPlaceholder}
                   onChange={(event) => setDraft({ ...draft, q: event.target.value })}
                 />
               </div>
             </label>
             <label>
-              <span>País</span>
+              <span>{copy.procedures.country}</span>
               <select
                 value={draft.country}
                 disabled={coverage.isLoading || coverage.isError}
@@ -208,10 +219,10 @@ export function ProceduresPage() {
               >
                 <option value="">
                   {coverage.isLoading
-                    ? "Cargando países…"
+                    ? copy.procedures.countryLoading
                     : coverage.isError
-                      ? "Países no disponibles"
-                      : "Todos los países"}
+                      ? copy.procedures.countryUnavailable
+                      : copy.procedures.countryAll}
                 </option>
                 {countryOptions.map(([code, name]) => (
                   <option key={code} value={code}>
@@ -221,17 +232,17 @@ export function ProceduresPage() {
               </select>
             </label>
             <label>
-              <span>Estado</span>
+              <span>{copy.procedures.status}</span>
               <select
                 value={draft.status}
                 onChange={(event) => setDraft({ ...draft, status: event.target.value })}
               >
                 <option value="">
                   {statuses.isLoading
-                    ? "Cargando estados…"
+                    ? copy.procedures.statusLoading
                     : statuses.isError
-                      ? "Estados no disponibles"
-                      : "Todos los estados"}
+                      ? copy.procedures.statusUnavailable
+                      : copy.procedures.statusAll}
                 </option>
                 {(statuses.data?.statuses ?? []).map(({ value, process_count }) => (
                   <option key={value} value={value}>
@@ -241,16 +252,16 @@ export function ProceduresPage() {
               </select>
             </label>
             <label>
-              <span>Modalidad</span>
+              <span>{copy.procedures.method}</span>
               <input
                 value={draft.method}
                 maxLength={160}
-                placeholder="Ej. contratación menor"
+                placeholder={copy.procedures.methodPlaceholder}
                 onChange={(event) => setDraft({ ...draft, method: event.target.value })}
               />
             </label>
             <label>
-              <span>Publicado desde</span>
+              <span>{copy.procedures.publishedFrom}</span>
               <input
                 type="date"
                 value={draft.from}
@@ -259,7 +270,7 @@ export function ProceduresPage() {
               />
             </label>
             <label>
-              <span>Publicado hasta</span>
+              <span>{copy.procedures.publishedTo}</span>
               <input
                 type="date"
                 value={draft.to}
@@ -268,7 +279,7 @@ export function ProceduresPage() {
               />
             </label>
             <div className="filter-actions">
-              <button type="submit">Buscar</button>
+              <button type="submit">{copy.procedures.submit}</button>
               <button
                 type="button"
                 onClick={() => {
@@ -276,7 +287,7 @@ export function ProceduresPage() {
                   setParams(new URLSearchParams());
                 }}
               >
-                Limpiar
+                {copy.procedures.clear}
               </button>
             </div>
           </form>
@@ -285,37 +296,48 @@ export function ProceduresPage() {
         <section className="procedure-results" aria-live="polite">
           <div className="results-heading">
             <div>
-              <h2>Resultados</h2>
-              <p className="tabular">
-                {result.isLoading
-                  ? "Consultando registros…"
-                  : `${formatCount(data?.total)} procedimientos encontrados`}
-              </p>
+              <h2>{copy.procedures.resultsTitle}</h2>
+              {!isBusy && !result.isError && (
+                <p>
+                  {(data?.total === 1
+                    ? copy.procedures.resultsFoundOne
+                    : copy.procedures.resultsFound
+                  ).replace("{n}", formatCount(data?.total))}
+                </p>
+              )}
             </div>
-            {result.isFetching && !result.isLoading && <span>Actualizando…</span>}
           </div>
 
-          {result.isError ? (
-            <div className="results-state card" role="alert">
-              No pudimos consultar los procedimientos. Intenta de nuevo en un momento.
+          {isBusy ? (
+            <div className="results-state card" role="status">
+              <span className="loading-dots" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+              <strong>{copy.procedures.resultsLoading}</strong>
             </div>
-          ) : !result.isLoading && items.length === 0 ? (
+          ) : result.isError ? (
+            <div className="results-state card" role="alert">
+              {copy.procedures.error}
+            </div>
+          ) : items.length === 0 ? (
             <div className="results-state card">
               <SearchIcon size={28} />
-              <strong>No encontramos procedimientos con estos filtros.</strong>
-              <span>Prueba con menos filtros o con otra palabra.</span>
+              <strong>{copy.procedures.emptyTitle}</strong>
+              <span>{copy.procedures.emptyHint}</span>
             </div>
           ) : (
             <div className="procedure-table-wrap card">
               <table className="procedure-table">
                 <thead>
                   <tr>
-                    <th>Procedimiento</th>
-                    <th>País</th>
-                    <th>Estado</th>
-                    <th>Publicación</th>
-                    <th>Monto estimado</th>
-                    <th>Fuente</th>
+                    <th>{copy.procedures.columns.procedure}</th>
+                    <th>{copy.procedures.columns.country}</th>
+                    <th>{copy.procedures.columns.status}</th>
+                    <th>{copy.procedures.columns.publication}</th>
+                    <th>{copy.procedures.columns.estimatedAmount}</th>
+                    <th>{copy.procedures.columns.source}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -323,8 +345,8 @@ export function ProceduresPage() {
                     const sourceUrl = safeUrl(procedure.source_url);
                     return (
                       <tr key={procedure.process_id}>
-                        <td data-label="Procedimiento">
-                          <strong>{procedure.title || "Procedimiento sin título"}</strong>
+                        <td data-label={copy.procedures.columns.procedure}>
+                          <strong>{procedure.title || copy.procedures.untitled}</strong>
                           <small className="tabular">
                             {procedure.process_number || procedure.process_id}
                           </small>
@@ -332,24 +354,27 @@ export function ProceduresPage() {
                             <small>{procedure.procurement_method}</small>
                           )}
                         </td>
-                        <td data-label="País">
+                        <td data-label={copy.procedures.columns.country}>
                           <b className="country-code tabular">{procedure.country_code}</b>
                         </td>
-                        <td data-label="Estado">
+                        <td data-label={copy.procedures.columns.status}>
                           <b className={statusClass(procedure.process_status)}>
-                            {procedure.process_status ?? "Sin estado"}
+                            {procedure.process_status ?? copy.procedures.noStatus}
                           </b>
                         </td>
-                        <td data-label="Publicación">
+                        <td data-label={copy.procedures.columns.publication}>
                           <CalendarIcon size={16} /> {formatDate(procedure.publication_date)}
                         </td>
-                        <td data-label="Monto estimado" className="tabular">
+                        <td
+                          data-label={copy.procedures.columns.estimatedAmount}
+                          className="tabular"
+                        >
                           {formatAmount(procedure.estimated_amount, procedure.currency_code)}
                         </td>
-                        <td data-label="Fuente">
+                        <td data-label={copy.procedures.columns.source}>
                           {sourceUrl ? (
                             <a href={sourceUrl} target="_blank" rel="noreferrer">
-                              Ver original
+                              {copy.procedures.viewOriginal}
                             </a>
                           ) : (
                             procedure.source_system
@@ -364,18 +389,20 @@ export function ProceduresPage() {
           )}
 
           {(data?.total_pages ?? 0) > 1 && (
-            <nav className="pagination" aria-label="Paginación de procedimientos">
-              <button disabled={page <= 1} onClick={() => changePage(page - 1)}>
-                Anterior
+            <nav className="pagination" aria-label={copy.procedures.paginationLabel}>
+              <button disabled={isBusy || page <= 1} onClick={() => changePage(page - 1)}>
+                {copy.procedures.previous}
               </button>
               <span className="tabular">
-                Página {data?.page} de {data?.total_pages}
+                {copy.procedures.pageOf
+                  .replace("{page}", String(data?.page))
+                  .replace("{total}", String(data?.total_pages))}
               </span>
               <button
-                disabled={page >= (data?.total_pages ?? 1)}
+                disabled={isBusy || page >= (data?.total_pages ?? 1)}
                 onClick={() => changePage(page + 1)}
               >
-                Siguiente
+                {copy.procedures.next}
               </button>
             </nav>
           )}

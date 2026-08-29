@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { copy } from "../../../i18n/copy";
+import { getCopy, useCopy } from "../../../i18n";
 import { formatCount, formatDate, formatMoney } from "../../../lib/format";
 import type { QueryColumn } from "../api";
 import { columnLabel } from "../columnLabels";
@@ -48,7 +48,7 @@ export function formatCell(
       return formatCount(toNumber(value));
     default:
       return value === null || value === undefined || value === ""
-        ? copy.table.emptyCell
+        ? getCopy().table.emptyCell
         : String(value);
   }
 }
@@ -63,6 +63,7 @@ export function uniformCurrency(column: QueryColumn, rows: Row[]): string | null
  * Tabla de resultados desplegable al hacer clic en el encabezado.
  */
 export function ResultTable({ columns, rows, rowCount, truncated }: Props) {
+  const copy = useCopy();
   const [isOpen, setIsOpen] = useState(false);
 
   return (

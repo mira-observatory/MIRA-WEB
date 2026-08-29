@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import "../styles/index.css";
-import { copy } from "../i18n/copy";
+import { getCopy, initLanguage } from "../i18n";
 import { ProceduresPage } from "../features/procedures/ProceduresPage";
 import { App } from "./App";
 
@@ -20,13 +20,13 @@ const queryClient = new QueryClient({
   },
 });
 
-const root = document.getElementById("root");
-if (!root) throw new Error(copy.errors.missingRoot);
+// Antes de renderizar: el primer pintado ya sale en el idioma correcto y no
+// hay parpadeo de espanol a ingles. El titulo y la descripcion los pone cada
+// pagina en un efecto, para que sigan al idioma cuando se cambia.
+initLanguage();
 
-document.title = copy.document.title;
-document
-  .querySelector('meta[name="description"]')
-  ?.setAttribute("content", copy.document.description);
+const root = document.getElementById("root");
+if (!root) throw new Error(getCopy().errors.missingRoot);
 
 createRoot(root).render(
   <StrictMode>
