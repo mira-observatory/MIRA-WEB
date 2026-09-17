@@ -83,6 +83,17 @@ no regenero, el cambio no se puede fusionar.
 
 ## Despliegue con Docker Compose
 
+El frontend de prueba esta publicado en `http://165.227.127.2`, conectado a
+`http://104.131.184.162`. La imagen inicial es `mira-web:69fa714-do1`.
+Se construyo con Docker en `mira-app-prod` y se transfirio como imagen a
+`mira-front-prod`; este ultimo la ejecuta desde `/opt/mira-web` con Compose.
+Se verificaron en Chrome el inicio, la ruta directa `/procedimientos` y las
+peticiones a la API sin errores de JavaScript ni de red.
+
+Para preparar otro servidor vacio con Ubuntu 24.04, ejecutar como root
+`bash deploy/bootstrap-ubuntu.sh`. Instala Docker y Compose; Nginx ya viene
+dentro de la imagen y no necesita instalarse en el host.
+
 La imagen compila la web con Node.js y sirve `dist/` con Nginx sin privilegios
 de administrador. El contenedor final no contiene Node.js ni credenciales.
 
