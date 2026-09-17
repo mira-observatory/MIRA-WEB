@@ -1,0 +1,16 @@
+*
+!package.json
+!package-lock.json
+!index.html
+!tsconfig.json
+!vite.config.ts
+!tailwind.config.ts
+!postcss.config.js
+!src/
+!src/**
+!public/
+!public/**
+!deploy/
+!deploy/nginx.conf
+**/.env
+**/.env.*

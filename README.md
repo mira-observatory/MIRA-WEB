@@ -81,6 +81,37 @@ no regenero, el cambio no se puede fusionar.
 - **Nunca suma montos de monedas distintas.** `formatMoney` exige el codigo de
   moneda; sin el, no formatea como dinero.
 
+## Despliegue con Docker Compose
+
+La imagen compila la web con Node.js y sirve `dist/` con Nginx sin privilegios
+de administrador. El contenedor final no contiene Node.js ni credenciales.
+
+Crear `.env.digitalocean` desde la unica plantilla `.env.example` y definir
+`VITE_MIRA_API_BASE_URL` con la URL publica de la API. Para el acceso de prueba
+actual es `http://104.131.184.162`. Elegir `MIRA_IMAGE_TAG` para identificar
+la version y ejecutar:
+
+```bash
+docker compose --env-file .env.digitalocean config --quiet
+docker compose --env-file .env.digitalocean build --pull
+docker compose --env-file .env.digitalocean up -d --wait --wait-timeout 120
+```
+
+El sitio se publica en el puerto `MIRA_HTTP_PORT` (80 por defecto). La API
+debe permitir el origen del sitio en `CORS_ORIGINS`; para `mira-front-prod`
+es `http://165.227.127.2`. Nginx resuelve las rutas de React al recargar.
+
+Si la imagen se construye en otra maquina o en CI, publicarla en un registro
+o transferirla con `docker save` / `docker load`. Luego ejecutar Compose con
+`up -d --no-build --pull never --wait` para una imagen cargada localmente.
+En el servidor de destino solo hacen falta la imagen, `compose.yaml` y su
+archivo de configuracion.
+
+Cambiar la URL de la API requiere reconstruir la imagen: Vite la incorpora
+durante el build. Al habilitar dominio y HTTPS, utilizar tambien HTTPS en la
+URL de la API y actualizar CORS. El acceso HTTP por IP es provisional;
+las cookies anonimas de la API requieren HTTPS.
+
 ## Licencia
 
 MIT. Ver [LICENSE](LICENSE).

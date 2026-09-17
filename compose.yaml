@@ -1,0 +1,25 @@
+name: mira-web
+
+services:
+  web:
+    image: mira-web:${MIRA_IMAGE_TAG:-local}
+    build:
+      context: .
+      args:
+        VITE_MIRA_API_BASE_URL: ${VITE_MIRA_API_BASE_URL:?Falta la URL publica de MIRA-API}
+    restart: unless-stopped
+    stop_grace_period: 15s
+    ports:
+      - "${MIRA_HTTP_PORT:-80}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
