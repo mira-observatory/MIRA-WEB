@@ -145,7 +145,7 @@ certbot certonly --webroot -w /var/www/letsencrypt \
 Una vez emitido, instalar la configuracion HTTPS, comprobar `nginx -t` y
 recargar Nginx. Ambos registros DNS deben apuntar al frontend y los puertos
 80/443 deben ser accesibles. En el backend instalar tambien
-`MIRA-API/deploy/nginx-web-gateway.conf`; su puerto 8081 es exclusivo de la VPC.
+`MIRA-API/deploy/nginx-api.conf`; su puerto 8081 es exclusivo de la VPC.
 
 `certbot.timer` esta habilitado para renovar automaticamente. El hook
 `/etc/letsencrypt/renewal-hooks/deploy/reload-nginx` ejecuta `nginx -t` y
@@ -163,10 +163,11 @@ sudo systemctl list-timers certbot.timer
 sudo certbot renew --cert-name proyectomira.org --dry-run --run-deploy-hooks
 ```
 
-Antes de la activacion se guardaron `compose.yaml` y `.env.digitalocean` en
-`/opt/mira-web/backups/pre-https-20260918/`. Para revertir solo la aplicacion,
-mantener el bind local y `/api` y usar otra imagen construida para esas rutas;
-la imagen HTTP anterior contiene una URL de API incompatible con HTTPS.
+Tras validar HTTPS se eliminaron las imagenes HTTP anteriores, los paquetes
+de transferencia, los directorios de construccion temporales y los respaldos
+previos a HTTPS. Los servidores conservan sus imagenes activas y configuracion
+actual. Para desplegar otra version, construirla manteniendo `/api` y el bind
+local; una imagen con la antigua URL HTTP de la API no es compatible con HTTPS.
 
 ## Licencia
 
