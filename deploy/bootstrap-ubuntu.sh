@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Preparacion del servidor de frontend con Ubuntu 24.04.
-# Nginx corre dentro de la imagen de la web; no se instala en el host.
+# Instala Docker; para HTTPS tambien se configura Nginx/Certbot en el host.
+# Ver README.md: el Nginx de la imagen solo sirve los archivos estaticos.
 set -euo pipefail
 test "$(id -u)" = 0
 . /etc/os-release
