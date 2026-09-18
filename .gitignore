@@ -8,6 +8,9 @@ dist-ssr/
 .env.*
 !.env.example
 
+# Artefactos de verificacion/despliegue; nunca guardar scripts utiles bajo .env*.
+.deploy-tmp/
+
 .vscode/
 .idea/
 *.log

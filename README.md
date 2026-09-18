@@ -83,91 +83,18 @@ no regenero, el cambio no se puede fusionar.
 
 ## Despliegue con Docker Compose
 
-La web esta publicada en `https://proyectomira.org` y
-`https://www.proyectomira.org`. Ambos dominios redirigen de HTTP a HTTPS,
-conservando la ruta y los parametros. La imagen es `mira-web:8328e8a-https1`.
-Se construye en `mira-app-prod` y se transfiere a `mira-front-prod`
-(`165.227.127.2`), que la ejecuta desde `/opt/mira-web` con Compose.
+La preparacion, HTTPS, actualizacion y recuperacion **del frontend** estan en
+[la guia de operacion del web](docs/operations-and-recovery.md). Incluye un
+comando de entrada para preparar el servidor, con sus requisitos previos.
 
-El navegador consulta `/api` en el mismo dominio. Nginx del host termina TLS
-y conecta con el backend por la VPC (`10.108.0.4:8081`); el gateway del backend
-solo admite al frontend (`10.108.0.2`). No se necesitan un dominio adicional
-para la API ni peticiones HTTP desde el navegador. Swagger esta en `/api/docs`.
+La web se publica en `https://proyectomira.org` y `https://www.proyectomira.org`.
+Nginx de Ubuntu maneja HTTPS y envia `/api` a la API por la VPC; el Nginx del
+contenedor sirve los archivos estaticos. Swagger esta en `/api/docs`.
 
-Para preparar otro servidor vacio con Ubuntu 24.04, ejecutar como root
-`bash deploy/bootstrap-ubuntu.sh`. Instala Docker y Compose. El despliegue
-HTTPS requiere ademas Nginx y Certbot en el host; ver la seccion HTTPS.
-
-La imagen compila la web con Node.js y sirve `dist/` con Nginx sin privilegios
-de administrador. El contenedor final no contiene Node.js ni credenciales.
-
-Crear `.env.digitalocean` desde la unica plantilla `.env.example` y definir
-`VITE_MIRA_API_BASE_URL=/api`, `MIRA_HTTP_BIND=127.0.0.1` y
-`MIRA_HTTP_PORT=8080`. Elegir `MIRA_IMAGE_TAG` para identificar la version y
-ejecutar:
-
-```bash
-docker compose --env-file .env.digitalocean config --quiet
-docker compose --env-file .env.digitalocean build --pull
-docker compose --env-file .env.digitalocean up -d --wait --wait-timeout 120
-```
-
-El contenedor escucha solo en `127.0.0.1:8080`; el acceso publico pasa por
-Nginx del host en 80/443. Nginx dentro del contenedor resuelve las rutas de
-React al recargar. La API usa `UVICORN_ROOT_PATH=/api` para generar las rutas
-de Swagger y permite ambos origenes HTTPS en `CORS_ORIGINS`.
-
-Si la imagen se construye en otra maquina o en CI, publicarla en un registro
-o transferirla con `docker save` / `docker load`. Luego ejecutar Compose con
-`up -d --no-build --pull never --wait` para una imagen cargada localmente.
-En el servidor de destino hacen falta la imagen, `compose.yaml`, su archivo
-de configuracion y la configuracion de Nginx/Certbot del host.
-
-Cambiar `VITE_MIRA_API_BASE_URL` requiere reconstruir la imagen: Vite lo
-incorpora durante el build. El valor relativo `/api` sirve para ambos dominios.
-
-### HTTPS y renovacion
-
-`deploy/nginx-edge.conf` se instala en `/etc/nginx/sites-available/mira-web`,
-con un enlace en `sites-enabled`. Reemplaza el sitio predeterminado de Nginx.
-El certificado de Let's Encrypt cubre los dos dominios y vive en
-`/etc/letsencrypt/live/proyectomira.org/`, fuera de la imagen y del repositorio.
-
-Para una instalacion nueva, instalar `nginx` y `certbot`, configurar primero
-un sitio HTTP que sirva `/.well-known/acme-challenge/` desde
-`/var/www/letsencrypt`, y emitir el certificado con:
-
-```bash
-certbot certonly --webroot -w /var/www/letsencrypt \
-  --cert-name proyectomira.org -d proyectomira.org -d www.proyectomira.org
-```
-
-Una vez emitido, instalar la configuracion HTTPS, comprobar `nginx -t` y
-recargar Nginx. Ambos registros DNS deben apuntar al frontend y los puertos
-80/443 deben ser accesibles. En el backend instalar tambien
-`MIRA-API/deploy/nginx-api.conf`; su puerto 8081 es exclusivo de la VPC.
-
-`certbot.timer` esta habilitado para renovar automaticamente. El hook
-`/etc/letsencrypt/renewal-hooks/deploy/reload-nginx` ejecuta `nginx -t` y
-`systemctl reload nginx` tras cada renovacion. El puerto 80 conserva la ruta
-ACME sin redireccion para que Certbot pueda validar los dominios.
-
-Verificado el 18 de septiembre de 2026: certificados validos para ambos
-dominios, redireccion 308 conservando ruta y parametros, inicio y catalogo en
-Chrome con llamadas HTTPS a la API sin errores de red/JavaScript. La simulacion
-de renovacion con recarga de Nginx tambien termino correctamente.
-
-```bash
-sudo certbot certificates
-sudo systemctl list-timers certbot.timer
-sudo certbot renew --cert-name proyectomira.org --dry-run --run-deploy-hooks
-```
-
-Tras validar HTTPS se eliminaron las imagenes HTTP anteriores, los paquetes
-de transferencia, los directorios de construccion temporales y los respaldos
-previos a HTTPS. Los servidores conservan sus imagenes activas y configuracion
-actual. Para desplegar otra version, construirla manteniendo `/api` y el bind
-local; una imagen con la antigua URL HTTP de la API no es compatible con HTTPS.
+La API se prepara desde su propio repositorio:
+[MIRA-API: despliegue](https://github.com/byronalb146/MIRA-API/blob/main/docs/digitalocean.md).
+La base de datos se prepara o recupera desde
+[MIRA-ETL: base de datos](https://github.com/byronalb146/MIRA-ETL/blob/main/docs/database_recovery.md).
 
 ## Licencia
 
