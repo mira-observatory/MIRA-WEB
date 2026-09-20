@@ -3,15 +3,11 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRightIcon,
-  BuildingIcon,
   CalendarIcon,
   DatabaseIcon,
   DocumentIcon,
   FilterIcon,
   GlobeIcon,
-  HandshakeIcon,
-  MonitorIcon,
-  PillIcon,
   RefreshIcon,
   SearchIcon,
   ArrowUpIcon,
@@ -23,27 +19,15 @@ import { LanguageToggle } from "../components/LanguageToggle";
 import { SiteFooter } from "../components/SiteFooter";
 import { AskPanel } from "../features/ask/AskPanel";
 import { useAskConversation } from "../features/ask/useAskConversation";
+import { EXAMPLE_ICONS } from "../features/ask/examples/icons";
+import { getSessionExamples } from "../features/ask/examples/selection";
 import { fetchCoverage } from "../features/coverage/api";
 import { ManualSearchPanel } from "../features/manual-search/ManualSearchPanel";
-import { getCopy, getLanguage, INTL_LOCALE, useCopy, type Copy } from "../i18n";
+import { getCopy, getLanguage, INTL_LOCALE, useCopy, useLanguage } from "../i18n";
 import { formatCount } from "../lib/format";
 
 // Bandera de reserva cuando la API no trae una, o el archivo no carga.
 const GENERIC_FLAG_ASSET = "/flags/generic.svg";
-
-// Se construyen al renderizar, no al cargar el modulo: el texto depende del
-// idioma activo y una constante de modulo se quedaria con el de arranque.
-function buildExamples(copy: Copy) {
-  return [
-    { Icon: BuildingIcon, text: copy.home.examples.mostContractsHonduras },
-    { Icon: PillIcon, text: copy.home.examples.medicinePurchases },
-    { Icon: MonitorIcon, text: copy.home.examples.computerEquipmentCostaRica },
-    {
-      Icon: HandshakeIcon,
-      text: copy.home.examples.directAwardInstitutions,
-    },
-  ];
-}
 
 const monthYearFormat = () =>
   new Intl.DateTimeFormat(INTL_LOCALE[getLanguage()], { month: "short", year: "numeric" });
@@ -121,7 +105,13 @@ function Brand() {
 
 export function App() {
   const copy = useCopy();
-  const examples = buildExamples(copy);
+  const language = useLanguage();
+  const [sessionExamples] = useState(getSessionExamples);
+  const examples = sessionExamples.map((example) => ({
+    id: example.id,
+    Icon: EXAMPLE_ICONS[example.category],
+    text: example.text[language],
+  }));
   const [question, setQuestion] = useState("");
   const [notice, setNotice] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
@@ -457,7 +447,7 @@ export function App() {
               <div className="examples">
                 {examples.map((example) => (
                   <button
-                    key={example.text}
+                    key={example.id}
                     onClick={() => {
                       setNotice("");
                       if (activeCountryCodes.length === 0) {
@@ -474,7 +464,12 @@ export function App() {
                     className="example"
                   >
                     <span className="example-icon">
-                      <example.Icon className="icon" size={30} />
+                      <example.Icon
+                        className="icon"
+                        size={30}
+                        strokeWidth={1.8}
+                        aria-hidden="true"
+                      />
                     </span>
                     <span>{example.text}</span>
                   </button>

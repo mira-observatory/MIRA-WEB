@@ -73,6 +73,16 @@ no regenero, el cambio no se puede fusionar.
 | `src/features/coverage/`       | Franja del istmo, matriz de cobertura, explicador de ceros         |
 | `src/lib/`                     | Formato de montos y fechas, diccionarios de enums, exportacion CSV |
 
+## Consultas de ejemplo
+
+La portada muestra cuatro preguntas aleatorias de temas distintos, tomadas de
+[un catalogo de 100 ejemplos](src/features/ask/examples/catalog.ts). Cada entrada
+tiene un ID estable y texto en espanol e ingles; los iconos por tema usan Lucide.
+La seleccion se guarda en `sessionStorage`: se conserva al recargar, navegar o
+cambiar de idioma, y se sortea al comenzar una nueva sesion de la pestana.
+Para editar o ampliar la lista, conserva los IDs existentes y agrega ambas
+traducciones. Las preguntas se envian a los paises activos, igual que la consulta libre.
+
 ## Lo que este repositorio nunca hace
 
 - **Nunca habla con la base de datos.** Ni `supabase-js`, ni claves de proveedor en

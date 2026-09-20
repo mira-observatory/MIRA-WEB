@@ -84,13 +84,6 @@ export const copyEs = {
       manualSearch: "Buscar con filtros",
       filterHint: "¿No sabes qué buscar?",
     },
-    examples: {
-      mostContractsHonduras: "¿Qué empresas recibieron más contratos en Honduras en 2023?",
-      medicinePurchases: "Muéstrame compras de medicamentos en Guatemala.",
-      computerEquipmentCostaRica: "¿Cuánto se contrató en equipo de cómputo en Costa Rica en 2024?",
-      directAwardInstitutions:
-        "¿Qué instituciones hicieron más compras por adjudicación directa en Guatemala?",
-    },
     catalog: {
       title: "Explora el catálogo de procedimientos",
       description:

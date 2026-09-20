@@ -88,13 +88,6 @@ export const copyEn: Copy = {
       manualSearch: "Search with filters",
       filterHint: "Not sure what to search for?",
     },
-    examples: {
-      mostContractsHonduras: "Which companies received the most contracts in Honduras in 2023?",
-      medicinePurchases: "Show me medicine purchases in Guatemala.",
-      computerEquipmentCostaRica: "How much was spent on computer equipment in Costa Rica in 2024?",
-      directAwardInstitutions:
-        "Which institutions made the most direct-award purchases in Guatemala?",
-    },
     catalog: {
       title: "Explore the procurement catalogue",
       description:
