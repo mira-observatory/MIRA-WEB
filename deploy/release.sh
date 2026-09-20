@@ -107,6 +107,9 @@ docker login ghcr.io --username "$actor" --password-stdin
 docker pull "$image"
 docker tag "$image" "$app:ci-$revision"
 mkdir -p "$state/previous"
+# Legacy web installs only shipped Compose; normalize their empty deploy folder
+# before taking the backup used by the first automated release.
+mkdir -p "$root/deploy"
 tar -cf "$state/previous/config.tar" compose.yaml deploy
 version_fields save
 if [[ -f "$state/current.txt" ]]; then
