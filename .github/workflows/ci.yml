@@ -1,41 +1,119 @@
-name: CI
-
+name: CI and DigitalOcean
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      VITE_MIRA_API_BASE_URL: /api
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          node-version: "22"
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
           cache: npm
-
       - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: bash -n deploy/*.sh
 
-      - name: Tipos
-        run: npm run typecheck
+  image:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.publish.outputs.image }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Construir y publicar imagen por commit
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${GITHUB_REPOSITORY,,}:sha-$GITHUB_SHA"
+          docker build --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" --build-arg VITE_MIRA_API_BASE_URL=/api -t "$image" .
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+          docker push "$image"
+          digest="$(docker image inspect "$image" --format '{{index .RepoDigests 0}}')"
+          echo "image=$digest" >> "$GITHUB_OUTPUT"
+          printf '### Imagen publicada\n\n`%s`\n' "$digest" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Pruebas
-        run: npm test
-
-      - name: Build
-        run: npm run build
-
-  # Contrato con MIRA-API: si el backend cambio un modelo y este repositorio no
-  # regenero los tipos, el cambio no se puede fusionar. Se habilita cuando MIRA-API
-  # publique su OpenAPI en un entorno accesible desde CI.
-  # api-contract:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v4
-  #       with: { node-version: "22", cache: npm }
-  #     - run: npm ci
-  #     - run: npx openapi-typescript ${{ vars.MIRA_API_URL }}/openapi.json -o src/api/generated/schema.d.ts
-  #     - run: git diff --exit-code src/api/generated/
+  deploy:
+    needs: image
+    if: vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: digitalocean-production
+    concurrency:
+      group: digitalocean-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Desplegar la imagen verificada
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          IMAGE: ${{ needs.image.outputs.image }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # No desplegar una ejecucion antigua si main ya avanzo.
+          head="$(git ls-remote origin refs/heads/main | cut -f1)"
+          test "$head" = "$GITHUB_SHA" || { echo 'main avanzo; usar su pipeline mas reciente.'; exit 1; }
+          [[ "$DEPLOY_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]]
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          key_dir="$(mktemp -d "$RUNNER_TEMP/mira-ssh.XXXXXXXX")"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$key_dir/key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$key_dir/known_hosts"
+          chmod 600 "$key_dir/key" "$key_dir/known_hosts"
+          ssh_options=(-i "$key_dir/key" -o BatchMode=yes -o StrictHostKeyChecking=yes
+            -o "UserKnownHostsFile=$key_dir/known_hosts" -o IdentitiesOnly=yes
+            -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
+          target="root@$DEPLOY_HOST"
+          remote=""
+          cleanup() {
+            if [[ "$remote" =~ ^/tmp/mira-web-release\.[a-zA-Z0-9]+$ ]]; then
+              ssh "${ssh_options[@]}" "$target" "rm -rf -- '$remote'" || true
+            fi
+            rm -rf -- "$key_dir"
+          }
+          trap cleanup EXIT
+          remote="$(ssh "${ssh_options[@]}" "$target" 'mktemp -d /tmp/mira-web-release.XXXXXXXX')"
+          [[ "$remote" =~ ^/tmp/mira-web-release\.[a-zA-Z0-9]+$ ]]
+          tar -czf "$key_dir/release.tar.gz" compose.yaml deploy
+          scp "${ssh_options[@]}" "$key_dir/release.tar.gz" "$target:$remote/release.tar.gz"
+          ssh "${ssh_options[@]}" "$target" "tar -xzf '$remote/release.tar.gz' -C '$remote'"
+          printf -v command 'bash %q apply %q %q %q' "$remote/deploy/release.sh" "$IMAGE" "$GITHUB_SHA" "$GITHUB_ACTOR"
+          printf '%s' "$GH_TOKEN" | ssh "${ssh_options[@]}" "$target" "$command"
+          printf '### Despliegue completado\n\nCommit: `%s`\n\nImagen: `%s`\n' \
+            "$GITHUB_SHA" "$IMAGE" >> "$GITHUB_STEP_SUMMARY"

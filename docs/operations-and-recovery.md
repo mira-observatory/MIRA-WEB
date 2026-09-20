@@ -1,5 +1,8 @@
 # Operacion y recuperacion del frontend
 
+Los despliegues desde `main`, secretos de Actions y rollback se explican en
+[GitHub Actions](github-actions.md). Esta guia cubre el aprovisionamiento del host.
+
 Esta guia cubre solo MIRA-WEB. La [API](https://github.com/byronalb146/MIRA-API/blob/main/docs/digitalocean.md)
 y la [base de datos](https://github.com/byronalb146/MIRA-ETL/blob/main/docs/database_recovery.md)
 se preparan desde sus respectivos repositorios, antes del frontend.
