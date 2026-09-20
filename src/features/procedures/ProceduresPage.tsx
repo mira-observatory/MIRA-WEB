@@ -85,7 +85,11 @@ export function ProceduresPage() {
   useEffect(() => setDraft(applied), [applied]);
   // React Router conserva el scroll al navegar: sin esto se entra al catalogo a
   // media pagina y la cabecera queda fuera de vista.
-  useEffect(() => window.scrollTo({ top: 0 }), []);
+  useEffect(() => {
+    // scrollTo puede devolver una promesa; el efecto no debe retornarla porque
+    // React la intentaria ejecutar como limpieza al salir del catalogo.
+    window.scrollTo({ top: 0 });
+  }, []);
   // Depende de `copy` para que el titulo tambien cambie al cambiar de idioma.
   // No restaura el anterior: cada ruta fija el suyo al montar.
   useEffect(() => {
