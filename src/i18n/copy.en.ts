@@ -20,7 +20,7 @@ export const copyEn: Copy = {
     promiseLine2: "simple, traceable and regional.",
   },
   document: {
-    title: "MIRA - Public procurement queries",
+    title: "MIRA",
     description: "Ask about Central American public procurement in plain language.",
   },
   countries: {
@@ -248,7 +248,7 @@ export const copyEn: Copy = {
     serviceResponded: "The service responded",
   },
   procedures: {
-    documentTitle: "Procurement processes - MIRA",
+    documentTitle: "MIRA",
     backHomeAriaLabel: "Back to the MIRA home page",
     backHome: "Back to home",
     eyebrow: "Public catalogue",

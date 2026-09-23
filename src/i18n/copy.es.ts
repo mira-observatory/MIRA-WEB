@@ -7,7 +7,7 @@ export const copyEs = {
     promiseLine2: "simple, trazable y regional.",
   },
   document: {
-    title: "MIRA - Consultas de compras publicas",
+    title: "MIRA",
     description: "Consulta en lenguaje natural las contrataciones publicas de Centroamerica.",
   },
   countries: {
@@ -242,7 +242,7 @@ export const copyEs = {
     serviceResponded: "El servicio respondio",
   },
   procedures: {
-    documentTitle: "Procedimientos - MIRA",
+    documentTitle: "MIRA",
     backHomeAriaLabel: "Volver al inicio de MIRA",
     backHome: "Volver al inicio",
     eyebrow: "Catálogo público",
