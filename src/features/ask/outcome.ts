@@ -1,12 +1,13 @@
 import type { Outcome } from "./api";
 
 /**
- * Agrupa los 17 codigos de la taxonomia del backend en las pocas familias que
+ * Agrupa los codigos de la taxonomia del backend en las pocas familias que
  * la interfaz realmente distingue visualmente. La taxonomia completa importa
  * para depurar (queda en analytics.query_log); aqui solo interesa como se ve.
  */
 export type OutcomeTone =
-  "ok" | "zero" | "degraded" | "out_of_scope" | "rejected" | "failed" | "throttled";
+  | "too_broad" | "unclear" | "ok" | "zero" | "degraded"
+  | "out_of_scope" | "rejected" | "failed" | "throttled";
 
 export function classifyOutcome(outcome: Outcome): OutcomeTone {
   switch (outcome) {
@@ -16,6 +17,10 @@ export function classifyOutcome(outcome: Outcome): OutcomeTone {
       return "zero";
     case "OK_DEGRADED_NARRATIVE":
       return "degraded";
+    case "REJECTED_QUESTION_TOO_BROAD":
+      return "too_broad";
+    case "REJECTED_INTENT_UNCLEAR":
+      return "unclear";
     case "OUT_OF_SCOPE":
       return "out_of_scope";
     case "THROTTLED_BUDGET":

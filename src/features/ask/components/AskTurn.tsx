@@ -118,7 +118,10 @@ function AnswerBody({ turn }: { turn: Turn }) {
   const tone = turn.outcome ? classifyOutcome(turn.outcome) : null;
 
   // Rechazo, fuera de dominio, fallo o limite: no hay tabla que mostrar.
-  if (tone === "out_of_scope" || tone === "rejected" || tone === "failed" || tone === "throttled") {
+  if (
+    tone === "too_broad" || tone === "unclear" || tone === "out_of_scope" ||
+    tone === "rejected" || tone === "failed" || tone === "throttled"
+  ) {
     return <StatusPanel tone={tone} />;
   }
 
@@ -178,4 +181,3 @@ function AnswerBody({ turn }: { turn: Turn }) {
     </>
   );
 }
-

@@ -356,7 +356,7 @@ export interface components {
          *     agrupar y el registro degenera en vigilancia sin aprendizaje.
          * @enum {string}
          */
-        Outcome: "OK" | "OK_ZERO_ROWS" | "OK_DEGRADED_NARRATIVE" | "OUT_OF_SCOPE" | "REJECTED_ENTITY_NOT_FOUND" | "REJECTED_ENTITY_AMBIGUOUS" | "REJECTED_SQL_PARSE" | "REJECTED_SQL_NOT_SELECT" | "REJECTED_SQL_RELATION" | "REJECTED_SQL_FUNCTION" | "REJECTED_SQL_COST" | "REJECTED_SQL_COUNTRY_SCOPE" | "FAILED_DB_TIMEOUT" | "FAILED_DB_ERROR" | "FAILED_LLM_ERROR" | "THROTTLED_QUOTA" | "THROTTLED_BUDGET";
+        Outcome: "OK" | "OK_ZERO_ROWS" | "OK_DEGRADED_NARRATIVE" | "OUT_OF_SCOPE" | "REJECTED_QUESTION_TOO_BROAD" | "REJECTED_INTENT_UNCLEAR" | "REJECTED_ENTITY_NOT_FOUND" | "REJECTED_ENTITY_AMBIGUOUS" | "REJECTED_SQL_PARSE" | "REJECTED_SQL_NOT_SELECT" | "REJECTED_SQL_RELATION" | "REJECTED_SQL_FUNCTION" | "REJECTED_SQL_COST" | "REJECTED_SQL_COUNTRY_SCOPE" | "FAILED_DB_TIMEOUT" | "FAILED_DB_ERROR" | "FAILED_LLM_ERROR" | "THROTTLED_QUOTA" | "THROTTLED_BUDGET";
         /** Procedure */
         Procedure: {
             /** Process Id */
@@ -485,7 +485,7 @@ export interface components {
              * Strategy
              * @enum {string}
              */
-            strategy: "generated_sql" | "cache" | "out_of_scope";
+            strategy: "generated_sql" | "cache" | "out_of_scope" | "needs_clarification";
             outcome: components["schemas"]["Outcome"];
             /** Sql Executed */
             sql_executed?: string | null;

@@ -1,12 +1,22 @@
 import { useCopy, type Copy } from "../../../i18n";
 
-export type StatusTone = "out_of_scope" | "rejected" | "failed" | "throttled" | "invalid";
+export type StatusTone =
+  | "too_broad" | "unclear" | "out_of_scope" | "rejected"
+  | "failed" | "throttled" | "invalid";
 
 // Funcion y no constante: el texto depende del idioma activo.
 function statusCopyByTone(
   copy: Copy,
 ): Record<StatusTone, { title: string; body: string; className: string }> {
   return {
+    too_broad: {
+      ...copy.status.too_broad,
+      className: "border-maize/30 bg-maize/10 text-[#8a6a15]",
+    },
+    unclear: {
+      ...copy.status.unclear,
+      className: "border-maize/30 bg-maize/10 text-[#8a6a15]",
+    },
     out_of_scope: {
       title: copy.status.out_of_scope.title,
       body: copy.status.out_of_scope.body,

@@ -3,6 +3,12 @@ import { describe, expect, it } from "vitest";
 import { classifyOutcome } from "./outcome";
 
 describe("classifyOutcome", () => {
+  it("distingue una pregunta abierta de una intencion no entendida", () => {
+    expect(classifyOutcome("REJECTED_QUESTION_TOO_BROAD")).toBe("too_broad");
+    expect(classifyOutcome("REJECTED_INTENT_UNCLEAR")).toBe("unclear");
+    // Un fallo del generador no prueba que la pregunta sea ambigua.
+    expect(classifyOutcome("REJECTED_SQL_PARSE")).toBe("rejected");
+  });
   it("agrupa los outcomes de exito", () => {
     expect(classifyOutcome("OK")).toBe("ok");
     expect(classifyOutcome("OK_ZERO_ROWS")).toBe("zero");

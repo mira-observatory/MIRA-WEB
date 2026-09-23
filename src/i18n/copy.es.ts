@@ -185,17 +185,25 @@ export const copyEs = {
     },
   },
   status: {
+    too_broad: {
+      title: "Tu pregunta es muy abierta",
+      body: 'Indica qué quieres saber: ver contrataciones, contar procesos o conocer proveedores. Por ejemplo: “Muéstrame las contrataciones públicas en Guatemala relacionadas con computadoras”.',
+    },
+    unclear: {
+      title: "No logramos entender la intención de tu consulta",
+      body: "Reformula la pregunta indicando qué información buscas y sobre qué compra, institución o proveedor. Si te refieres a una consulta anterior, incluye ese contexto.",
+    },
     out_of_scope: {
       title: "Esta pregunta esta fuera de lo que MIRA puede responder hoy",
       body: "MIRA solo responde sobre procesos, adjudicaciones, compradores y proveedores de los paises disponibles. Intenta reformular tu pregunta.",
     },
     rejected: {
-      title: "No pudimos traducir tu pregunta a una consulta valida",
-      body: "Intenta ser mas especifico: menciona el pais, el periodo o el tipo de dato que buscas.",
+      title: "No pudimos preparar una consulta válida",
+      body: "Puedes intentar nuevamente o reformular la pregunta indicando qué información buscas.",
     },
     failed: {
-      title: "Hubo un error consultando los datos",
-      body: "No fue un problema con tu pregunta -- intenta de nuevo en un momento.",
+      title: "Hubo un problema técnico al procesar tu consulta",
+      body: "Intenta nuevamente en un momento. Puedes usar la misma pregunta.",
     },
     throttled: {
       title: "MIRA alcanzo su limite de uso por ahora",

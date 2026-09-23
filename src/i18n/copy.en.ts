@@ -193,17 +193,25 @@ export const copyEn: Copy = {
     },
   },
   status: {
+    too_broad: {
+      title: "Your question is too broad",
+      body: 'Tell us what you want to know: view contracts, count processes or find suppliers. For example: “Show me public procurement in Guatemala related to computers”.',
+    },
+    unclear: {
+      title: "We could not understand the intent of your query",
+      body: "Rephrase your question with the information you need and the purchase, institution or supplier it concerns. If you mean a previous query, include that context.",
+    },
     out_of_scope: {
       title: "This question is outside what MIRA can answer today",
       body: "MIRA only answers about processes, awards, buyers and suppliers in the available countries. Try rephrasing your question.",
     },
     rejected: {
-      title: "We could not turn your question into a valid query",
-      body: "Try being more specific: mention the country, the period or the kind of data you are after.",
+      title: "We could not prepare a valid query",
+      body: "You can try again or rephrase your question with the information you need.",
     },
     failed: {
-      title: "Something went wrong querying the data",
-      body: "This was not a problem with your question -- try again in a moment.",
+      title: "A technical problem occurred while processing your query",
+      body: "Try again in a moment. You can use the same question.",
     },
     throttled: {
       title: "MIRA has reached its usage limit for now",
