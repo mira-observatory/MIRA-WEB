@@ -579,7 +579,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "PARTIAL_COVERAGE" | "MIXED_CURRENCY" | "TRUNCATED_RESULT" | "NULL_AMOUNTS_EXCLUDED" | "NO_DATA_FOR_PERIOD" | "UNNORMALISED_ITEM_TEXT" | "MISSING_COUNTRY_IN_RESULT" | "LIMIT_MAY_HIDE_ROWS" | "NO_MATCH_FOR_TERM";
+            code: "PARTIAL_COVERAGE" | "MIXED_CURRENCY" | "TRUNCATED_RESULT" | "NULL_AMOUNTS_EXCLUDED" | "NO_DATA_FOR_PERIOD" | "UNNORMALISED_ITEM_TEXT" | "MISSING_COUNTRY_IN_RESULT" | "LIMIT_MAY_HIDE_ROWS" | "NO_MATCH_FOR_TERM" | "NO_VALID_AWARDS";
             /** Message Es */
             message_es: string;
             /** Message En */
