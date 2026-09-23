@@ -79,6 +79,7 @@ export const copyEs = {
       trust: "Datos públicos oficiales.",
       examplesButton: "Ver ejemplos",
       examplesTitle: "Consultas de ejemplo",
+      refreshExamples: "Cambiar ejemplos",
       missingQuestion: "Escribe una pregunta para comenzar.",
       missingCountry: "No hay países con datos disponibles en este momento.",
       manualSearch: "Buscar con filtros",

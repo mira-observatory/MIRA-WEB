@@ -29,6 +29,7 @@ export function classifyOutcome(outcome: Outcome): OutcomeTone {
     case "FAILED_DB_TIMEOUT":
     case "FAILED_DB_ERROR":
     case "FAILED_LLM_ERROR":
+    case "FAILED_INTERNAL_ERROR":
       return "failed";
     default:
       // REJECTED_SQL_*, REJECTED_ENTITY_*: el sistema decidio no ejecutar nada.

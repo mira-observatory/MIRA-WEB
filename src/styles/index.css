@@ -799,6 +799,35 @@ h2 {
   cursor: not-allowed;
   opacity: 0.5;
 }
+.examples-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 14px;
+}
+.ask .examples-heading h3 {
+  margin: 0;
+}
+.examples-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #c9e5e2;
+  border-radius: 8px;
+  background: #fff;
+  color: #087d85;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.examples-refresh:hover {
+  background: #edf9f7;
+  border-color: #00a69c;
+}
 .examples {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1843,4 +1872,3 @@ h2 {
     max-width: 100%;
   }
 }
-

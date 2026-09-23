@@ -20,7 +20,10 @@ import { SiteFooter } from "../components/SiteFooter";
 import { AskPanel } from "../features/ask/AskPanel";
 import { useAskConversation } from "../features/ask/useAskConversation";
 import { EXAMPLE_ICONS } from "../features/ask/examples/icons";
-import { getSessionExamples } from "../features/ask/examples/selection";
+import {
+  getSessionExamples,
+  refreshSessionExamples,
+} from "../features/ask/examples/selection";
 import { fetchCoverage } from "../features/coverage/api";
 import { ManualSearchPanel } from "../features/manual-search/ManualSearchPanel";
 import { getCopy, getLanguage, INTL_LOCALE, useCopy, useLanguage } from "../i18n";
@@ -106,7 +109,7 @@ function Brand() {
 export function App() {
   const copy = useCopy();
   const language = useLanguage();
-  const [sessionExamples] = useState(getSessionExamples);
+  const [sessionExamples, setSessionExamples] = useState(getSessionExamples);
   const examples = sessionExamples.map((example) => ({
     id: example.id,
     Icon: EXAMPLE_ICONS[example.category],
@@ -443,8 +446,19 @@ export function App() {
                   {notice}
                 </p>
               )}
-              <h3 id="examples">{copy.home.ask.examplesTitle}</h3>
-              <div className="examples">
+              <div className="examples-heading">
+                <h3 id="examples">{copy.home.ask.examplesTitle}</h3>
+                <button
+                  type="button"
+                  className="examples-refresh"
+                  aria-controls="example-options"
+                  onClick={() => setSessionExamples(refreshSessionExamples())}
+                >
+                  <RefreshIcon size={16} aria-hidden="true" />
+                  {copy.home.ask.refreshExamples}
+                </button>
+              </div>
+              <div className="examples" id="example-options" aria-live="polite">
                 {examples.map((example) => (
                   <button
                     key={example.id}

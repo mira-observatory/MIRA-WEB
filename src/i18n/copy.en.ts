@@ -83,6 +83,7 @@ export const copyEn: Copy = {
       trust: "Official public data.",
       examplesButton: "See examples",
       examplesTitle: "Example questions",
+      refreshExamples: "Shuffle examples",
       missingQuestion: "Type a question to get started.",
       missingCountry: "No countries have data available right now.",
       manualSearch: "Search with filters",
