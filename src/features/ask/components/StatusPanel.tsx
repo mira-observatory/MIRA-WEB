@@ -2,7 +2,7 @@ import { useCopy, type Copy } from "../../../i18n";
 
 export type StatusTone =
   | "too_broad" | "unclear" | "out_of_scope" | "rejected"
-  | "failed" | "throttled" | "invalid";
+  | "timeout" | "failed" | "throttled" | "invalid";
 
 // Funcion y no constante: el texto depende del idioma activo.
 function statusCopyByTone(
@@ -26,6 +26,10 @@ function statusCopyByTone(
       title: copy.status.rejected.title,
       body: copy.status.rejected.body,
       className: "border-maize/30 bg-maize/10 text-[#8a6a15]",
+    },
+    timeout: {
+      ...copy.status.timeout,
+      className: "border-ember/25 bg-ember/5 text-ember",
     },
     failed: {
       title: copy.status.failed.title,

@@ -7,7 +7,7 @@ import type { Outcome } from "./api";
  */
 export type OutcomeTone =
   | "too_broad" | "unclear" | "ok" | "zero" | "degraded"
-  | "out_of_scope" | "rejected" | "failed" | "throttled";
+  | "out_of_scope" | "rejected" | "timeout" | "failed" | "throttled";
 
 export function classifyOutcome(outcome: Outcome): OutcomeTone {
   switch (outcome) {
@@ -27,6 +27,7 @@ export function classifyOutcome(outcome: Outcome): OutcomeTone {
     case "THROTTLED_QUOTA":
       return "throttled";
     case "FAILED_DB_TIMEOUT":
+      return "timeout";
     case "FAILED_DB_ERROR":
     case "FAILED_LLM_ERROR":
     case "FAILED_INTERNAL_ERROR":

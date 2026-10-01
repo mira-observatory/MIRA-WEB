@@ -202,6 +202,10 @@ export const copyEs = {
       title: "No pudimos preparar una consulta válida",
       body: "Puedes intentar nuevamente o reformular la pregunta indicando qué información buscas.",
     },
+    timeout: {
+      title: "La consulta superó el tiempo máximo de espera",
+      body: "La base de datos tardó demasiado en responder. Intenta nuevamente o acota la búsqueda por país, período o proveedor.",
+    },
     failed: {
       title: "Hubo un problema técnico al procesar tu consulta",
       body: "Intenta nuevamente en un momento. Puedes usar la misma pregunta.",

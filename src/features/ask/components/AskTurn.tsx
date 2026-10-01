@@ -113,6 +113,7 @@ export function AskTurn({ turn }: { turn: Turn }) {
 }
 
 function AnswerBody({ turn }: { turn: Turn }) {
+  if (turn.outcome === "FAILED_DB_TIMEOUT") return <StatusPanel tone="timeout" />;
   if (turn.failed) return <StatusPanel tone="failed" />;
 
   const tone = turn.outcome ? classifyOutcome(turn.outcome) : null;

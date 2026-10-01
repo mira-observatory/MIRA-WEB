@@ -23,9 +23,12 @@ describe("classifyOutcome", () => {
   });
 
   it("agrupa fallos de infraestructura como failed", () => {
-    expect(classifyOutcome("FAILED_DB_TIMEOUT")).toBe("failed");
     expect(classifyOutcome("FAILED_DB_ERROR")).toBe("failed");
     expect(classifyOutcome("FAILED_LLM_ERROR")).toBe("failed");
+  });
+
+  it("distingue el timeout de los otros fallos", () => {
+    expect(classifyOutcome("FAILED_DB_TIMEOUT")).toBe("timeout");
   });
 
   it("agrupa limitacion de cuota y presupuesto como throttled", () => {

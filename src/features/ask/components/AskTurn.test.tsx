@@ -41,7 +41,7 @@ describe.each(["es", "en"] as const)("mensajes en %s", (language) => {
     ["REJECTED_QUESTION_TOO_BROAD", "too_broad"],
     ["REJECTED_INTENT_UNCLEAR", "unclear"],
     ["FAILED_DB_ERROR", "failed"],
-    ["FAILED_DB_TIMEOUT", "failed"],
+    ["FAILED_DB_TIMEOUT", "timeout"],
     ["FAILED_LLM_ERROR", "failed"],
     ["REJECTED_SQL_PARSE", "rejected"],
     ["OUT_OF_SCOPE", "out_of_scope"],
@@ -71,5 +71,14 @@ describe.each(["es", "en"] as const)("mensajes en %s", (language) => {
     );
     expect(html).toContain(getCopy().status.failed.title);
     expect(html).toContain(getCopy().status.failed.body);
+  });
+
+  it("conserva el mensaje de timeout si despues se corta el stream", () => {
+    setLanguage(language);
+    const html = renderToStaticMarkup(
+      <AskTurn turn={{ ...emptyTurn(), phase: "done", failed: true, outcome: "FAILED_DB_TIMEOUT" }} />,
+    );
+    expect(html).toContain(getCopy().status.timeout.title);
+    expect(html).not.toContain(getCopy().status.failed.title);
   });
 });

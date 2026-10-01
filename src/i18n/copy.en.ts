@@ -210,6 +210,10 @@ export const copyEn: Copy = {
       title: "We could not prepare a valid query",
       body: "You can try again or rephrase your question with the information you need.",
     },
+    timeout: {
+      title: "The query exceeded the time limit",
+      body: "The database took too long to respond. Try again or narrow your search by country, period or supplier.",
+    },
     failed: {
       title: "A technical problem occurred while processing your query",
       body: "Try again in a moment. You can use the same question.",
