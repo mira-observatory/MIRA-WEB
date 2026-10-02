@@ -12,6 +12,7 @@ import { fetchCoverage } from "../coverage/api";
 import { fetchProcedures, fetchProcessStatuses, type ProcedureQuery } from "./api";
 
 const PAGE_SIZE = 25;
+const MAX_PAGE = 10_000;
 
 type Filters = {
   q: string;
@@ -79,7 +80,8 @@ export function ProceduresPage() {
   // y empujan la intro y los resultados fuera de vista. En escritorio el CSS
   // los muestra siempre y esconde el boton.
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const page = Math.min(10_000, Math.max(1, Math.floor(Number(params.get("pagina")) || 1)));
+  const page = Math.min(MAX_PAGE, Math.max(1, Math.floor(Number(params.get("pagina")) || 1)));
+  const [pageDraft, setPageDraft] = useState(String(page));
   const appliedCount = Object.values(applied).filter((value) => value.trim()).length;
 
   useEffect(() => setDraft(applied), [applied]);
@@ -125,6 +127,9 @@ export function ProceduresPage() {
     queryFn: () => fetchProcedures(query),
     placeholderData: (previous) => previous,
   });
+  const totalPages = Math.min(MAX_PAGE, result.data?.total_pages ?? 0);
+
+  useEffect(() => setPageDraft(String(page)), [page, totalPages]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -139,11 +144,25 @@ export function ProceduresPage() {
   };
 
   const changePage = (nextPage: number) => {
+    if (
+      result.isFetching ||
+      result.isError ||
+      !Number.isSafeInteger(nextPage) ||
+      nextPage < 1 ||
+      nextPage > totalPages ||
+      nextPage === page
+    )
+      return;
     const next = new URLSearchParams(params);
     if (nextPage <= 1) next.delete("pagina");
     else next.set("pagina", String(nextPage));
     setParams(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const jumpToPage = (event: FormEvent) => {
+    event.preventDefault();
+    changePage(Number(pageDraft));
   };
 
   const data = result.data;
@@ -392,22 +411,41 @@ export function ProceduresPage() {
             </div>
           )}
 
-          {(data?.total_pages ?? 0) > 1 && (
+          {totalPages > 1 && (
             <nav className="pagination" aria-label={copy.procedures.paginationLabel}>
               <button disabled={isBusy || page <= 1} onClick={() => changePage(page - 1)}>
                 {copy.procedures.previous}
               </button>
-              <span className="tabular">
+              <span id="procedure-page-status" className="tabular">
                 {copy.procedures.pageOf
                   .replace("{page}", String(data?.page))
-                  .replace("{total}", String(data?.total_pages))}
+                  .replace("{total}", String(totalPages))}
               </span>
-              <button
-                disabled={isBusy || page >= (data?.total_pages ?? 1)}
-                onClick={() => changePage(page + 1)}
-              >
+              <button disabled={isBusy || page >= totalPages} onClick={() => changePage(page + 1)}>
                 {copy.procedures.next}
               </button>
+              <form className="page-jump" onSubmit={jumpToPage}>
+                <label htmlFor="procedure-page">{copy.procedures.goToPage}</label>
+                <input
+                  id="procedure-page"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={totalPages}
+                  step={1}
+                  required
+                  value={pageDraft}
+                  onChange={(event) => setPageDraft(event.target.value)}
+                  disabled={isBusy || result.isError}
+                  aria-describedby="procedure-page-status"
+                />
+                <button
+                  type="submit"
+                  disabled={isBusy || result.isError || Number(pageDraft) === page}
+                >
+                  {copy.procedures.go}
+                </button>
+              </form>
             </nav>
           )}
         </section>

@@ -304,6 +304,8 @@ export const copyEn: Copy = {
     previous: "Previous",
     next: "Next",
     pageOf: "Page {page} of {total}",
+    goToPage: "Go to page",
+    go: "Go",
   },
   columns: {
     process_id: "Process",

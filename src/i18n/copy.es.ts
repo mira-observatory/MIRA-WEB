@@ -299,6 +299,8 @@ export const copyEs = {
     previous: "Anterior",
     next: "Siguiente",
     pageOf: "Página {page} de {total}",
+    goToPage: "Ir a la página",
+    go: "Ir",
   },
   columns: {
     process_id: "Proceso",

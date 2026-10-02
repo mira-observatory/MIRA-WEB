@@ -1628,6 +1628,7 @@ h2 {
 .pagination {
   margin-top: 18px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 16px;
@@ -1645,6 +1646,35 @@ h2 {
 .pagination span {
   color: #53657a;
   font-size: 12px;
+}
+.page-jump {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.page-jump label {
+  color: #53657a;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.page-jump input {
+  width: 85px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid #bfcbd2;
+  border-radius: 9px;
+  color: #132842;
+  background: #fff;
+  font: inherit;
+  font-size: 13.5px;
+}
+.page-jump input:focus-visible {
+  outline: 2px solid var(--action-teal);
+  outline-offset: 2px;
+}
+.page-jump input:disabled {
+  color: #9aa5ae;
+  background: #f1f3f4;
 }
 
 @media (max-width: 900px) {
@@ -1865,9 +1895,11 @@ h2 {
     width: 100%;
     justify-content: center;
   }
-  
+
   /* Fix iOS zoom on inputs and overflow issues */
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px !important;
     max-width: 100%;
   }
