@@ -20,10 +20,7 @@ import { SiteFooter } from "../components/SiteFooter";
 import { AskPanel } from "../features/ask/AskPanel";
 import { useAskConversation } from "../features/ask/useAskConversation";
 import { EXAMPLE_ICONS } from "../features/ask/examples/icons";
-import {
-  getSessionExamples,
-  refreshSessionExamples,
-} from "../features/ask/examples/selection";
+import { getSessionExamples, refreshSessionExamples } from "../features/ask/examples/selection";
 import { fetchCoverage } from "../features/coverage/api";
 import { ManualSearchPanel } from "../features/manual-search/ManualSearchPanel";
 import { getCopy, getLanguage, INTL_LOCALE, useCopy, useLanguage } from "../i18n";
@@ -179,7 +176,7 @@ export function App() {
   const showReopenButton = conversation.turns.length > 0 && !panelOpen;
   const currentConversationCountries = conversation.turns.at(-1)?.countries ?? activeCountryCodes;
   const askAllCountries = (text: string) => conversation.ask(text, activeCountryCodes);
-  const askFollowUp = (text: string) => conversation.ask(text, currentConversationCountries);
+  const askFollowUp = (text: string) => conversation.ask(text, activeCountryCodes);
 
   const metricValue = (value: string) => {
     if (coverageQuery.isLoading) return copy.home.loadingCoverage;

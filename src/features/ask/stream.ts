@@ -22,7 +22,7 @@ export function warningText(warning: QueryWarning, language: ResponseLanguage): 
 }
 
 export type StreamEvent =
-  | { type: "sql"; sql: string }
+  | { type: "sql"; sql: string; countries?: string[] }
   | { type: "row_count"; rowCount: number; truncated: boolean }
   | { type: "rows"; columns: QueryColumn[]; rows: Record<string, unknown>[] }
   | { type: "warnings"; warnings: QueryWarning[]; language: ResponseLanguage }
@@ -55,7 +55,13 @@ export function parseFrame(frame: string): StreamEvent | null {
 
   switch (name) {
     case "sql":
-      return { type: "sql", sql: String(data.sql ?? "") };
+      return {
+        type: "sql",
+        sql: String(data.sql ?? ""),
+        ...(Array.isArray(data.countries_filter)
+          ? { countries: data.countries_filter as string[] }
+          : {}),
+      };
     case "row_count":
       return {
         type: "row_count",

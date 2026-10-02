@@ -2,12 +2,7 @@ import { useState } from "react";
 
 import type { ConversationTurn, Outcome, QueryColumn } from "./api";
 import { classifyOutcome } from "./outcome";
-import {
-  streamQuery,
-  type QueryWarning,
-  type ResponseLanguage,
-  type StreamEvent,
-} from "./stream";
+import { streamQuery, type QueryWarning, type ResponseLanguage, type StreamEvent } from "./stream";
 
 //: El backend acepta 3 turnos como maximo (QueryRequest.history).
 const MAX_HISTORY = 3;
@@ -74,7 +69,12 @@ function emptyTurn(id: string, question: string, countries: string[]): Turn {
 export function applyEvent(turn: Turn, event: StreamEvent): Turn {
   switch (event.type) {
     case "sql":
-      return { ...turn, sql: event.sql, phase: "querying" };
+      return {
+        ...turn,
+        sql: event.sql,
+        countries: event.countries ?? turn.countries,
+        phase: "querying",
+      };
     case "row_count":
       return { ...turn, rowCount: event.rowCount, truncated: event.truncated };
     case "rows":

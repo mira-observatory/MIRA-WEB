@@ -26,6 +26,18 @@ describe("drainFrames", () => {
 });
 
 describe("parseFrame", () => {
+  it("lee los paises resueltos de la pregunta junto con el SQL", () => {
+    const frame = 'event: sql\ndata: {"sql":"SELECT 1","countries_filter":["GT","CR"]}';
+    expect(parseFrame(frame)).toEqual({ type: "sql", sql: "SELECT 1", countries: ["GT", "CR"] });
+  });
+
+  it("conserva compatibilidad con un backend que solo manda SQL", () => {
+    expect(parseFrame('event: sql\ndata: {"sql":"SELECT 1"}')).toEqual({
+      type: "sql",
+      sql: "SELECT 1",
+    });
+  });
+
   it("lee el evento de filas", () => {
     const frame = 'event: rows\ndata: {"columns": [], "rows": [{"total": 7992}]}';
 

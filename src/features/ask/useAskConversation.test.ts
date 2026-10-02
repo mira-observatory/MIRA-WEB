@@ -25,6 +25,16 @@ function turn(overrides: Partial<Turn> = {}): Turn {
 }
 
 describe("applyEvent", () => {
+  it("usa los paises resueltos para la tabla y el historial", () => {
+    const t = applyEvent(turn({ countries: ["GT", "HN", "CR", "NI"] }), {
+      type: "sql",
+      sql: "SELECT 1",
+      countries: ["GT", "CR"],
+    });
+    expect(t.countries).toEqual(["GT", "CR"]);
+    expect(buildHistory([{ ...t, phase: "done" }])[0]!.countries).toEqual(["GT", "CR"]);
+  });
+
   it("avanza de fase conforme llega el stream", () => {
     let t = turn({ phase: "translating", sql: null, outcome: null });
 
