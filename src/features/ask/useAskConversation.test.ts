@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import type { Outcome } from "./api";
-import { applyEvent, buildHistory, type Turn } from "./useAskConversation";
+import {
+  applyEvent,
+  buildHistory,
+  canRetryTurn,
+  prepareRetry,
+  type Turn,
+} from "./useAskConversation";
 
 function turn(overrides: Partial<Turn> = {}): Turn {
   return {
@@ -79,6 +85,65 @@ describe("applyEvent", () => {
 
     expect(t.narrative).toBe("Con gusto…");
     expect(t.narrativeVerified).toBe(true);
+  });
+});
+
+describe("reintentar una pregunta", () => {
+  it.each([
+    "FAILED_DB_ERROR",
+    "FAILED_DB_TIMEOUT",
+    "FAILED_LLM_ERROR",
+    "FAILED_INTERNAL_ERROR",
+    "REJECTED_SQL_PARSE",
+    "THROTTLED_QUOTA",
+    "THROTTLED_BUDGET",
+  ] as Outcome[])("permite un reintento manual tras %s", (outcome) => {
+    expect(canRetryTurn(turn({ outcome }))).toBe(true);
+  });
+
+  it.each([
+    "OK",
+    "OK_ZERO_ROWS",
+    "OK_DEGRADED_NARRATIVE",
+    "OUT_OF_SCOPE",
+    "REJECTED_QUESTION_TOO_BROAD",
+    "REJECTED_INTENT_UNCLEAR",
+  ] as Outcome[])("no reintenta automaticamente una respuesta %s", (outcome) => {
+    expect(canRetryTurn(turn({ outcome }))).toBe(false);
+  });
+
+  it("permite reintentar un corte de conexion, pero espera a que termine el turno", () => {
+    expect(canRetryTurn(turn({ failed: true, outcome: null }))).toBe(true);
+    expect(canRetryTurn(turn({ failed: true, phase: "querying" }))).toBe(false);
+  });
+
+  it("reenvia la pregunta y los paises originales sin incluir turnos posteriores", () => {
+    const previous = turn({ id: "before", question: "Compara Guatemala y Costa Rica" });
+    const failed = turn({
+      id: "failed",
+      question: "¿Y en 2024?",
+      countries: ["GT", "CR"],
+      outcome: "FAILED_DB_TIMEOUT",
+    });
+    const later = turn({ id: "later", question: "¿Y en Honduras?", countries: ["HN"] });
+    expect(prepareRetry([previous, failed, later], "failed")).toEqual({
+      question: failed.question,
+      countries: ["GT", "CR"],
+      history: buildHistory([previous]),
+    });
+  });
+
+  it("conserva el contexto capturado aunque otro reintento cambie una respuesta previa", () => {
+    const history = [{ question: "La pregunta original", countries: ["CR"], sql: "SELECT 1" }];
+    const changed = turn({ id: "before", question: "Otra pregunta", sql: "SELECT 2" });
+    const failed = turn({ id: "failed", failed: true, history });
+    expect(prepareRetry([changed, failed], "failed")!.history).toEqual(history);
+  });
+
+  it("ignora turnos inexistentes, exitosos o que siguen procesando", () => {
+    expect(prepareRetry([turn()], "missing")).toBeNull();
+    expect(prepareRetry([turn()], "t1")).toBeNull();
+    expect(prepareRetry([turn({ failed: true, phase: "querying" })], "t1")).toBeNull();
   });
 });
 

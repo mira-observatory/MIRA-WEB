@@ -180,6 +180,9 @@ export const copyEs = {
       copy: "Copiar",
       copied: "Copiado",
       copyResponse: "Copiar respuesta",
+      copyQuestion: "Copiar pregunta",
+      copyFailed: "No se pudo copiar",
+      retry: "Reintentar",
       copyTable: "Copiar tabla",
       downloadCsv: "Descargar como CSV",
       moreOptions: "Más opciones",
@@ -188,7 +191,7 @@ export const copyEs = {
   status: {
     too_broad: {
       title: "Tu pregunta es muy abierta",
-      body: 'Indica qué quieres saber: ver contrataciones, contar procesos o conocer proveedores. Por ejemplo: “Muéstrame las contrataciones públicas en Guatemala relacionadas con computadoras”.',
+      body: "Indica qué quieres saber: ver contrataciones, contar procesos o conocer proveedores. Por ejemplo: “Muéstrame las contrataciones públicas en Guatemala relacionadas con computadoras”.",
     },
     unclear: {
       title: "No logramos entender la intención de tu consulta",

@@ -528,6 +528,7 @@ export function App() {
         countries={currentConversationCountries}
         isPending={conversation.isPending}
         onAsk={askFollowUp}
+        onRetry={conversation.retry}
       />
     </div>
   );

@@ -13,13 +13,14 @@ type Props = {
   countries: string[];
   isPending: boolean;
   onAsk: (question: string) => void;
+  onRetry: (id: string) => void;
 };
 
 /**
  * Panel de conversación a pantalla completa en escritorio y móvil.
  * Se expande desde la vista principal con una transición suave y centrada.
  */
-export function AskPanel({ open, onClose, turns, countries, isPending, onAsk }: Props) {
+export function AskPanel({ open, onClose, turns, countries, isPending, onAsk, onRetry }: Props) {
   const copy = useCopy();
   const [followUp, setFollowUp] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,10 +49,12 @@ export function AskPanel({ open, onClose, turns, countries, isPending, onAsk }: 
     if (window.matchMedia?.("(pointer: fine)").matches) inputRef.current?.focus();
   }, [open]);
 
-  // Cada turno nuevo baja la vista automáticamente
+  // Sigue la ultima respuesta; reintentar un turno anterior conserva la vista.
+  const lastTurn = turns.at(-1);
   useEffect(() => {
+    if (!open) return;
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [turns, isPending]);
+  }, [lastTurn, open]);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -104,7 +107,12 @@ export function AskPanel({ open, onClose, turns, countries, isPending, onAsk }: 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
         <div className="mx-auto w-full max-w-4xl lg:max-w-5xl space-y-6">
           {turns.map((turn) => (
-            <AskTurn key={turn.id} turn={turn} />
+            <AskTurn
+              key={turn.id}
+              turn={turn}
+              onRetry={() => onRetry(turn.id)}
+              isPending={isPending}
+            />
           ))}
         </div>
       </div>

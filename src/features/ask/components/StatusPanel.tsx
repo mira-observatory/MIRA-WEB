@@ -1,8 +1,16 @@
 import { useCopy, type Copy } from "../../../i18n";
+import { RefreshIcon } from "../../../components/icons";
+import { CopyTextButton } from "./CopyTextButton";
 
 export type StatusTone =
-  | "too_broad" | "unclear" | "out_of_scope" | "rejected"
-  | "timeout" | "failed" | "throttled" | "invalid";
+  | "too_broad"
+  | "unclear"
+  | "out_of_scope"
+  | "rejected"
+  | "timeout"
+  | "failed"
+  | "throttled"
+  | "invalid";
 
 // Funcion y no constante: el texto depende del idioma activo.
 function statusCopyByTone(
@@ -49,13 +57,40 @@ function statusCopyByTone(
   };
 }
 
-export function StatusPanel({ tone }: { tone: StatusTone }) {
+export function StatusPanel({
+  tone,
+  onRetry,
+  isPending = false,
+}: {
+  tone: StatusTone;
+  onRetry?: () => void;
+  isPending?: boolean;
+}) {
   const copy = useCopy();
   const statusCopy = statusCopyByTone(copy)[tone];
   return (
-    <div className={`rounded-2xl border px-6 py-5 ${statusCopy.className}`}>
-      <p className="font-sans text-base font-semibold">{statusCopy.title}</p>
-      <p className="mt-1.5 font-sans text-sm opacity-90">{statusCopy.body}</p>
-    </div>
+    <>
+      <div className={`rounded-2xl border px-6 py-5 ${statusCopy.className}`}>
+        <p className="font-sans text-base font-semibold">{statusCopy.title}</p>
+        <p className="mt-1.5 font-sans text-sm opacity-90">{statusCopy.body}</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <CopyTextButton
+          text={`${statusCopy.title}\n\n${statusCopy.body}`}
+          label={copy.askTurn.actions.copyResponse}
+        />
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            disabled={isPending}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-isthmus/30 bg-paper px-2.5 py-1 font-sans text-xs font-medium text-isthmus transition hover:bg-isthmus/5 focus-visible:ring-2 focus-visible:ring-isthmus disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <RefreshIcon size={14} />
+            {copy.askTurn.actions.retry}
+          </button>
+        )}
+      </div>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import type { ConversationTurn, Outcome, QueryColumn } from "./api";
 import { classifyOutcome } from "./outcome";
@@ -38,9 +38,16 @@ export type Turn = {
   /** La conexion fallo (red, servicio caido). Distinto de un outcome
    * FAILED_*, que es el servicio respondiendo que algo salio mal adentro. */
   failed: boolean;
+  /** Contexto original, conservado para reintentar un turno anterior. */
+  history?: ConversationTurn[];
 };
 
-function emptyTurn(id: string, question: string, countries: string[]): Turn {
+function emptyTurn(
+  id: string,
+  question: string,
+  countries: string[],
+  history: ConversationTurn[] = [],
+): Turn {
   return {
     id,
     question,
@@ -57,6 +64,7 @@ function emptyTurn(id: string, question: string, countries: string[]): Turn {
     warnings: [],
     language: "es",
     failed: false,
+    history,
   };
 }
 
@@ -113,6 +121,24 @@ export function buildHistory(turns: Turn[]): ConversationTurn[] {
     }));
 }
 
+export function canRetryTurn(turn: Turn): boolean {
+  if (turn.phase !== "done") return false;
+  if (turn.failed) return true;
+  const tone = turn.outcome ? classifyOutcome(turn.outcome) : null;
+  return tone === "failed" || tone === "timeout" || tone === "rejected" || tone === "throttled";
+}
+
+export function prepareRetry(turns: Turn[], id: string) {
+  const index = turns.findIndex((turn) => turn.id === id);
+  const turn = turns[index];
+  if (!turn || !canRetryTurn(turn)) return null;
+  return {
+    question: turn.question,
+    countries: turn.countries,
+    history: turn.history ?? buildHistory(turns.slice(0, index)),
+  };
+}
+
 let globalTurns: Turn[] = [];
 
 /**
@@ -127,6 +153,7 @@ let globalTurns: Turn[] = [];
 export function useAskConversation() {
   const [turns, setTurns] = useState<Turn[]>(globalTurns);
   const [isPending, setIsPending] = useState(false);
+  const pendingRef = useRef(false);
 
   const setGlobalTurns = (updater: Turn[] | ((current: Turn[]) => Turn[])) => {
     setTurns((current) => {
@@ -136,10 +163,13 @@ export function useAskConversation() {
     });
   };
 
-  const ask = async (question: string, countries: string[]) => {
-    const id = crypto.randomUUID();
-    const history = buildHistory(turns);
-    setGlobalTurns((current) => [...current, emptyTurn(id, question, countries)]);
+  const runTurn = async (
+    id: string,
+    question: string,
+    countries: string[],
+    history: ConversationTurn[],
+  ) => {
+    pendingRef.current = true;
     setIsPending(true);
 
     const update = (apply: (turn: Turn) => Turn) =>
@@ -155,9 +185,30 @@ export function useAskConversation() {
     } catch {
       update((turn) => ({ ...turn, phase: "done", failed: true }));
     } finally {
+      pendingRef.current = false;
       setIsPending(false);
     }
   };
 
-  return { turns, ask, isPending };
+  const ask = async (question: string, countries: string[]) => {
+    if (pendingRef.current) return;
+    const id = crypto.randomUUID();
+    const history = buildHistory(turns);
+    setGlobalTurns((current) => [...current, emptyTurn(id, question, countries, history)]);
+    await runTurn(id, question, countries, history);
+  };
+
+  const retry = async (id: string) => {
+    if (pendingRef.current) return;
+    const request = prepareRetry(turns, id);
+    if (!request) return;
+    setGlobalTurns((current) =>
+      current.map((turn) =>
+        turn.id === id ? emptyTurn(id, request.question, request.countries, request.history) : turn,
+      ),
+    );
+    await runTurn(id, request.question, request.countries, request.history);
+  };
+
+  return { turns, ask, retry, isPending };
 }

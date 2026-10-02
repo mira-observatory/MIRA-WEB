@@ -3,8 +3,9 @@ import { MarkdownRenderer } from "../../../components/markdown/MarkdownRenderer"
 import { useCopy, type Copy } from "../../../i18n";
 import { classifyOutcome } from "../outcome";
 import { warningText } from "../stream";
-import type { Turn, TurnPhase } from "../useAskConversation";
+import { canRetryTurn, type Turn, type TurnPhase } from "../useAskConversation";
 import { AnswerActions } from "./AnswerActions";
+import { CopyTextButton } from "./CopyTextButton";
 import { ResultTable } from "./ResultTable";
 import { StatusPanel } from "./StatusPanel";
 
@@ -17,11 +18,13 @@ function phaseLabel(copy: Copy): Record<Exclude<TurnPhase, "done">, string> {
 }
 
 function QuestionBubble({ text }: { text: string }) {
+  const copy = useCopy();
   return (
-    <div className="flex justify-end">
-      <p className="max-w-[85%] rounded-2xl rounded-br-md bg-isthmus px-4 py-2.5 font-sans text-sm leading-relaxed text-white">
+    <div className="flex flex-col items-end gap-1.5">
+      <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-isthmus px-4 py-2.5 font-sans text-sm leading-relaxed text-white">
         {text}
       </p>
+      <CopyTextButton text={text} label={copy.askTurn.actions.copyQuestion} />
     </div>
   );
 }
@@ -101,29 +104,36 @@ function Narrative({ text, verified, plain }: { text: string; verified: boolean;
  * aparece apenas hay filas, sin esperar a que la redaccion termine. Asi se ve
  * antes sin que nada salte de lugar.
  */
-export function AskTurn({ turn }: { turn: Turn }) {
+type Props = { turn: Turn; onRetry?: () => void; isPending?: boolean };
+
+export function AskTurn({ turn, onRetry, isPending = false }: Props) {
   return (
     <div className="space-y-4">
       <QuestionBubble text={turn.question} />
       <AnswerShell>
-        <AnswerBody turn={turn} />
+        <AnswerBody turn={turn} onRetry={onRetry} isPending={isPending} />
       </AnswerShell>
     </div>
   );
 }
 
-function AnswerBody({ turn }: { turn: Turn }) {
-  if (turn.outcome === "FAILED_DB_TIMEOUT") return <StatusPanel tone="timeout" />;
-  if (turn.failed) return <StatusPanel tone="failed" />;
+function AnswerBody({ turn, onRetry, isPending }: Props) {
+  const statusProps = { onRetry: canRetryTurn(turn) ? onRetry : undefined, isPending };
+  if (turn.outcome === "FAILED_DB_TIMEOUT") return <StatusPanel tone="timeout" {...statusProps} />;
+  if (turn.failed) return <StatusPanel tone="failed" {...statusProps} />;
 
   const tone = turn.outcome ? classifyOutcome(turn.outcome) : null;
 
   // Rechazo, fuera de dominio, fallo o limite: no hay tabla que mostrar.
   if (
-    tone === "too_broad" || tone === "unclear" || tone === "out_of_scope" ||
-    tone === "rejected" || tone === "failed" || tone === "throttled"
+    tone === "too_broad" ||
+    tone === "unclear" ||
+    tone === "out_of_scope" ||
+    tone === "rejected" ||
+    tone === "failed" ||
+    tone === "throttled"
   ) {
-    return <StatusPanel tone={tone} />;
+    return <StatusPanel tone={tone} {...statusProps} />;
   }
 
   // La plantilla determinista del backend (cero filas, o narrativa que el
@@ -172,13 +182,18 @@ function AnswerBody({ turn }: { turn: Turn }) {
           countries={turn.countries}
         />
       )}
-      {turn.phase === "done" && (Boolean(turn.narrative) || hayTabla) && (
-        <AnswerActions
-          text={turn.narrative || ""}
-          columns={turn.columns}
-          rows={turn.rows}
-        />
-      )}
+      {turn.phase === "done" &&
+        (Boolean(turn.narrative) || avisoEnLugarDeLaRespuesta || hayTabla) && (
+          <AnswerActions
+            text={
+              avisoEnLugarDeLaRespuesta
+                ? warningText(avisoEnLugarDeLaRespuesta, turn.language)
+                : turn.narrative || ""
+            }
+            columns={turn.columns}
+            rows={turn.rows}
+          />
+        )}
     </>
   );
 }

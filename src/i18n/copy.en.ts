@@ -188,6 +188,9 @@ export const copyEn: Copy = {
       copy: "Copy",
       copied: "Copied",
       copyResponse: "Copy answer",
+      copyQuestion: "Copy question",
+      copyFailed: "Could not copy",
+      retry: "Retry",
       copyTable: "Copy table",
       downloadCsv: "Download as CSV",
       moreOptions: "More options",
@@ -196,7 +199,7 @@ export const copyEn: Copy = {
   status: {
     too_broad: {
       title: "Your question is too broad",
-      body: 'Tell us what you want to know: view contracts, count processes or find suppliers. For example: “Show me public procurement in Guatemala related to computers”.',
+      body: "Tell us what you want to know: view contracts, count processes or find suppliers. For example: “Show me public procurement in Guatemala related to computers”.",
     },
     unclear: {
       title: "We could not understand the intent of your query",

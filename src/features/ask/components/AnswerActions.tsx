@@ -10,6 +10,7 @@ import {
 import type { QueryColumn } from "../api";
 import { formatCell } from "./ResultTable";
 import { columnLabel } from "../columnLabels";
+import { CopyTextButton } from "./CopyTextButton";
 
 type Props = {
   text: string;
@@ -23,7 +24,7 @@ type Props = {
  */
 export function AnswerActions({ text, columns = [], rows = [], className = "" }: Props) {
   const copy = useCopy();
-  const [copiado, setCopiado] = useState(false);
+  const [tableCopyState, setTableCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -32,6 +33,12 @@ export function AnswerActions({ text, columns = [], rows = [], className = "" }:
   const markdownTables = extractMarkdownTables(text);
   const hasStructuredTable = columns.length > 0 && rows.length > 0;
   const hasTable = markdownTables.length > 0 || hasStructuredTable;
+
+  useEffect(() => {
+    if (tableCopyState === "idle") return;
+    const timer = window.setTimeout(() => setTableCopyState("idle"), 2000);
+    return () => window.clearTimeout(timer);
+  }, [tableCopyState]);
 
   // Cierra el menú al hacer clic fuera o presionar Escape
   useEffect(() => {
@@ -77,9 +84,10 @@ export function AnswerActions({ text, columns = [], rows = [], className = "" }:
       const tableRows = rows.map((row) =>
         columns.map((column) => {
           const pais = typeof row["country_code"] === "string" ? row["country_code"] : undefined;
-          const currency = typeof row["currency_code"] === "string" ? row["currency_code"] : column.currency_code;
+          const currency =
+            typeof row["currency_code"] === "string" ? row["currency_code"] : column.currency_code;
           return formatCell(row[column.name], column, pais, currency);
-        })
+        }),
       );
       return { headers, rows: tableRows };
     }
@@ -87,31 +95,13 @@ export function AnswerActions({ text, columns = [], rows = [], className = "" }:
   };
 
   /**
-   * Acción del botón Copiar:
-   * Si hay tabla, copia en formato TSV/HTML para Excel/Sheets.
-   * Si no hay tabla, copia el texto plano.
+   * Copia exclusivamente los datos tabulares en formato TSV/HTML.
    */
   const handleCopy = async () => {
     const tableData = getTableData();
-    let success = false;
-
-    if (tableData) {
-      success = await copyTableToClipboard(tableData.headers, tableData.rows);
-    }
-
-    if (!success) {
-      try {
-        await navigator.clipboard.writeText(text);
-        success = true;
-      } catch {
-        success = false;
-      }
-    }
-
-    if (success) {
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 2000);
-    }
+    if (!tableData) return;
+    const success = await copyTableToClipboard(tableData.headers, tableData.rows);
+    setTableCopyState(success ? "copied" : "failed");
   };
 
   /**
@@ -127,27 +117,39 @@ export function AnswerActions({ text, columns = [], rows = [], className = "" }:
   };
 
   return (
-    <div className={`relative flex items-center gap-1.5 pt-1 text-ink-soft ${className}`}>
-      {/* Botón Principal: Copiar */}
-      <button
-        type="button"
-        onClick={handleCopy}
-        title={hasTable ? "Copiar tabla para Excel / Sheets" : "Copiar respuesta"}
-        aria-label={copiado ? "Copiado" : "Copiar"}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-rule/60 bg-paper px-2.5 py-1 text-xs font-medium text-ink-soft transition hover:border-isthmus/40 hover:bg-paper-sunken hover:text-ink focus-visible:ring-2 focus-visible:ring-isthmus"
-      >
-        {copiado ? (
-          <>
-            <CheckIcon size={14} className="text-quetzal" />
-            <span className="text-[11px] font-semibold text-quetzal">{copy.askTurn.actions.copied}</span>
-          </>
-        ) : (
-          <>
-            <CopyIcon size={14} />
-            <span className="text-[11px]">{copy.askTurn.actions.copy}</span>
-          </>
-        )}
-      </button>
+    <div className={`relative flex flex-wrap items-center gap-1.5 pt-1 text-ink-soft ${className}`}>
+      {text && <CopyTextButton text={text} label={copy.askTurn.actions.copyResponse} />}
+      {hasTable && (
+        <button
+          type="button"
+          onClick={handleCopy}
+          title={copy.askTurn.actions.copyTable}
+          aria-label={
+            tableCopyState === "copied"
+              ? copy.askTurn.actions.copied
+              : copy.askTurn.actions.copyTable
+          }
+          className="inline-flex items-center gap-1.5 rounded-lg border border-rule/60 bg-paper px-2.5 py-1 text-xs font-medium text-ink-soft transition hover:border-isthmus/40 hover:bg-paper-sunken hover:text-ink focus-visible:ring-2 focus-visible:ring-isthmus"
+        >
+          {tableCopyState === "copied" ? (
+            <>
+              <CheckIcon size={14} className="text-quetzal" />
+              <span className="text-[11px] font-semibold text-quetzal">
+                {copy.askTurn.actions.copied}
+              </span>
+            </>
+          ) : (
+            <>
+              <CopyIcon size={14} />
+              <span aria-live="polite" className="text-[11px]">
+                {tableCopyState === "failed"
+                  ? copy.askTurn.actions.copyFailed
+                  : copy.askTurn.actions.copyTable}
+              </span>
+            </>
+          )}
+        </button>
+      )}
 
       {/* Botón Menú ⋯ (acciones para tablas) */}
       {hasTable && (
@@ -189,4 +191,3 @@ export function AnswerActions({ text, columns = [], rows = [], className = "" }:
     </div>
   );
 }
-
